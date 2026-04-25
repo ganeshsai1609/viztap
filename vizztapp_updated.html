@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Vizztapp — Smart India Travel Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --ink:#0f1923;--ink2:#1e2f3e;--gold:#c9973a;--gold2:#e8b84b;
+  --cream:#faf7f2;--cream2:#f2ede4;--teal:#2a7f6f;--teal2:#3aab97;
+  --red:#c0392b;--red2:#e74c3c;--muted:#7a8a96;--border:#ddd6c8;
+  --white:#ffffff;--shadow:0 4px 32px rgba(15,25,35,.10);--shadow-lg:0 16px 64px rgba(15,25,35,.16);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Outfit',sans-serif;background:var(--cream);color:var(--ink);overflow-x:hidden;min-height:100vh;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--cream2);}::-webkit-scrollbar-thumb{background:var(--gold);border-radius:3px;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideRight{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:translateX(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.88);opacity:.6}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes sosGlow{0%,100%{box-shadow:0 0 0 0 rgba(192,57,43,.5)}50%{box-shadow:0 0 0 10px rgba(192,57,43,0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes drawLine{from{stroke-dashoffset:1000}to{stroke-dashoffset:0}}
+@keyframes slideUp{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes barFill{from{width:0}to{width:var(--w)}}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:16px 56px;background:rgba(15,25,35,.93);backdrop-filter:blur(20px);border-bottom:1px solid rgba(201,151,58,.2);}
+.nav-logo{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--gold2);letter-spacing:1px;display:flex;align-items:center;gap:10px;cursor:pointer;}
+.nav-logo span{font-style:italic;color:var(--white);}
+.nav-links{display:flex;gap:4px;align-items:center;}
+.nav-link{padding:8px 16px;border-radius:6px;color:rgba(255,255,255,.7);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;border:none;background:none;font-family:'Outfit',sans-serif;}
+.nav-link:hover,.nav-link.active{color:var(--gold2);background:rgba(201,151,58,.12);}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.sos-btn{display:flex;align-items:center;gap:7px;padding:9px 18px;border-radius:8px;background:var(--red);border:none;color:#fff;font-weight:700;font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;animation:sosGlow 2s infinite;transition:transform .15s;}
+.sos-btn:hover{transform:scale(1.05);background:var(--red2);}
+.profile-avatar-btn{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--teal));border:2px solid rgba(255,255,255,.2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s;position:relative;}
+.profile-avatar-btn:hover{border-color:var(--gold2);transform:scale(1.06);}
+.profile-dropdown{position:absolute;top:calc(100% + 12px);right:0;background:var(--ink2);border:1px solid rgba(201,151,58,.2);border-radius:14px;min-width:200px;overflow:hidden;box-shadow:var(--shadow-lg);display:none;animation:slideDown .22s ease;}
+.profile-dropdown.open{display:block;}
+.pd-header{padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.07);}
+.pd-name{font-weight:700;font-size:15px;color:var(--white);}
+.pd-email{font-size:12px;color:rgba(255,255,255,.45);margin-top:2px;}
+.pd-item{display:flex;align-items:center;gap:10px;padding:12px 18px;font-size:13px;color:rgba(255,255,255,.75);cursor:pointer;transition:background .15s;border:none;background:none;width:100%;font-family:'Outfit',sans-serif;text-align:left;}
+.pd-item:hover{background:rgba(255,255,255,.06);color:var(--gold2);}
+.pd-item.danger{color:rgba(239,68,68,.8);}
+.pd-item.danger:hover{background:rgba(239,68,68,.08);color:#ef4444;}
+.pd-divider{height:1px;background:rgba(255,255,255,.07);margin:4px 0;}
+
+/* SCREENS */
+.screen{display:none;padding-top:80px;min-height:100vh;animation:fadeIn .4s ease;}
+.screen.active{display:block;}
+
+/* HERO */
+#hero-section{min-height:100vh;background:linear-gradient(160deg,var(--ink) 0%,var(--ink2) 45%,#1a3a4a 100%);position:relative;overflow:hidden;display:flex;align-items:center;}
+.hero-bg-art{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.hero-bg-art::before{content:'';position:absolute;top:-100px;right:-100px;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(201,151,58,.08) 0%,transparent 70%);}
+.hero-bg-art::after{content:'';position:absolute;bottom:-80px;left:20%;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(42,127,111,.1) 0%,transparent 70%);}
+.mandala-ring{position:absolute;right:8%;top:50%;transform:translateY(-50%);width:480px;height:480px;border-radius:50%;border:1px solid rgba(201,151,58,.15);animation:float 6s ease-in-out infinite;}
+.mandala-ring::before{content:'';position:absolute;inset:30px;border-radius:50%;border:1px solid rgba(201,151,58,.1);}
+.mandala-ring::after{content:'';position:absolute;inset:80px;border-radius:50%;border:1px solid rgba(201,151,58,.08);}
+.hero-content{position:relative;z-index:2;padding:0 60px;max-width:680px;animation:fadeUp .9s ease both;}
+.hero-eyebrow{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:20px;display:flex;align-items:center;gap:12px;}
+.hero-eyebrow::before{content:'';display:block;width:40px;height:1px;background:var(--gold);}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:80px;line-height:.95;font-weight:700;color:var(--white);margin-bottom:24px;}
+.hero-title em{font-style:italic;color:var(--gold2);}
+.hero-sub{font-size:17px;color:rgba(255,255,255,.6);line-height:1.7;margin-bottom:44px;max-width:480px;}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap;}
+.btn-primary{padding:16px 36px;border-radius:8px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--ink);font-weight:700;font-size:15px;cursor:pointer;border:none;font-family:'Outfit',sans-serif;transition:all .22s;box-shadow:0 8px 30px rgba(201,151,58,.35);display:flex;align-items:center;gap:10px;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(201,151,58,.45);}
+.btn-secondary{padding:16px 36px;border-radius:8px;background:transparent;color:var(--white);font-weight:600;font-size:15px;cursor:pointer;font-family:'Outfit',sans-serif;border:1.5px solid rgba(255,255,255,.3);transition:all .22s;display:flex;align-items:center;gap:10px;}
+.btn-secondary:hover{border-color:var(--gold2);color:var(--gold2);}
+.hero-stats{position:absolute;bottom:50px;left:60px;right:60px;display:flex;gap:40px;z-index:2;animation:fadeUp .9s ease .3s both;}
+.hero-stat{color:rgba(255,255,255,.7);}
+.hero-stat-num{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;color:var(--gold2);display:block;}
+.hero-stat-label{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;opacity:.6;}
+
+/* SECTIONS */
+.section{padding:90px 60px;}
+.section-tag{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;gap:10px;}
+.section-tag::before{content:'';width:28px;height:1px;background:var(--gold);display:block;}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:50px;font-weight:700;line-height:1.1;color:var(--ink);margin-bottom:14px;}
+.section-title em{font-style:italic;color:var(--teal);}
+.section-sub{font-size:15px;color:var(--muted);max-width:500px;line-height:1.7;}
+
+/* BUTTONS */
+.btn{padding:12px 26px;border-radius:10px;border:none;font-weight:700;font-size:14px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .18s;display:inline-flex;align-items:center;gap:8px;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--ink);box-shadow:0 4px 16px rgba(201,151,58,.3);}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(201,151,58,.4);}
+.btn-teal{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;box-shadow:0 4px 16px rgba(42,127,111,.3);}
+.btn-teal:hover{transform:translateY(-2px);}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--ink2);}
+.btn-ghost:hover{border-color:var(--teal);color:var(--teal);}
+.btn-red{background:var(--red);color:#fff;}
+.btn-red:hover{background:var(--red2);}
+.btn-ink{background:linear-gradient(135deg,var(--ink),var(--ink2));color:#fff;}
+
+/* CARD */
+.card{background:var(--white);border-radius:20px;padding:34px;border:1px solid var(--border);box-shadow:var(--shadow);}
+.card-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;margin-bottom:6px;color:var(--ink);}
+.card-sub{font-size:13px;color:var(--muted);margin-bottom:22px;}
+
+/* INPUTS */
+.input-wrap{position:relative;margin-bottom:16px;}
+.input-icon{position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:17px;pointer-events:none;}
+.text-input{width:100%;padding:13px 15px 13px 44px;border:2px solid var(--border);border-radius:12px;font-size:14px;font-family:'Outfit',sans-serif;color:var(--ink);background:var(--cream);outline:none;transition:border-color .2s,box-shadow .2s;}
+.text-input:focus{border-color:var(--gold);box-shadow:0 0 0 4px rgba(201,151,58,.12);}
+.text-input-plain{width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:12px;font-size:14px;font-family:'Outfit',sans-serif;color:var(--ink);background:var(--cream);outline:none;transition:border-color .2s;}
+.text-input-plain:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(42,127,111,.1);}
+.input-label{font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:.5px;}
+.suggestions-box{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--white);border:2px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-lg);z-index:50;display:none;}
+.suggestions-box.open{display:block;}
+.suggestion-item{padding:11px 16px;font-size:14px;color:var(--ink2);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .15s;border-bottom:1px solid var(--cream2);}
+.suggestion-item:last-child{border-bottom:none;}
+.suggestion-item:hover{background:var(--cream);color:var(--teal);}
+
+/* PLANNER */
+.planner-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;max-width:1200px;margin:0 auto;}
+.places-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.place-chip{padding:10px 13px;border-radius:10px;border:2px solid var(--border);background:var(--cream);cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2);font-weight:500;}
+.place-chip:hover{border-color:var(--gold);}
+.place-chip.selected{border-color:var(--teal);background:#ecf9f7;color:var(--teal);font-weight:600;}
+.place-chip .check{width:17px;height:17px;border-radius:5px;border:2px solid var(--border);background:transparent;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;transition:all .18s;}
+.place-chip.selected .check{background:var(--teal);border-color:var(--teal);color:#fff;}
+.generate-btn{width:100%;margin-top:22px;padding:17px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--ink),var(--ink2));color:var(--white);font-weight:700;font-size:15px;cursor:pointer;font-family:'Outfit',sans-serif;display:flex;align-items:center;justify-content:center;gap:12px;transition:all .22s;box-shadow:0 8px 28px rgba(15,25,35,.25);}
+.generate-btn:hover:not(:disabled){transform:translateY(-2px);}
+.generate-btn:disabled{opacity:.6;cursor:not-allowed;}
+
+/* ITINERARY */
+.info-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;}
+.info-chip{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:30px;font-size:12px;font-weight:600;}
+.itinerary-list{display:flex;flex-direction:column;}
+.stop-item{display:flex;gap:18px;position:relative;animation:slideRight .5s ease both;}
+.stop-item::before{content:'';position:absolute;left:18px;top:42px;bottom:-8px;width:2px;background:linear-gradient(to bottom,var(--teal2),transparent);}
+.stop-item:last-child::before{display:none;}
+.stop-num{width:38px;height:38px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.2);}
+.stop-body{flex:1;background:var(--cream);border-radius:13px;padding:16px 18px;margin-bottom:12px;border:1px solid var(--border);}
+.stop-name{font-weight:700;font-size:15px;color:var(--ink);margin-bottom:7px;}
+.stop-tags{display:flex;gap:7px;flex-wrap:wrap;}
+.tag{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;}
+.tag-crowd-low{background:#d1fae5;color:#065f46;}
+.tag-crowd-mod{background:#fef3c7;color:#92400e;}
+.tag-crowd-high{background:#fee2e2;color:#991b1b;}
+.tag-crowd-vhigh{background:#fecaca;color:#7f1d1d;}
+.tag-time{background:#e0f2fe;color:#0369a1;}
+.tag-dur{background:#ede9fe;color:#5b21b6;}
+.tag-weather{background:#fff7ed;color:#9a3412;}
+
+/* VEHICLES */
+.vehicles-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1200px;margin:0 auto;}
+.vehicle-card{background:var(--white);border-radius:20px;padding:26px;border:2px solid var(--border);cursor:pointer;transition:all .24s;position:relative;overflow:hidden;}
+.vehicle-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--teal2);}
+.vehicle-card.selected{border-color:var(--teal);box-shadow:0 0 0 4px rgba(42,127,111,.15);}
+.vehicle-badge{position:absolute;top:14px;right:14px;font-size:10px;padding:4px 10px;border-radius:20px;font-weight:700;letter-spacing:.5px;}
+.vehicle-icon{font-size:46px;margin-bottom:12px;display:block;line-height:1;}
+.vehicle-name{font-weight:800;font-size:17px;color:var(--ink);margin-bottom:4px;}
+.vehicle-desc{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5;}
+.vehicle-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.vehicle-chip{font-size:11px;padding:3px 9px;border-radius:8px;font-weight:600;background:var(--cream2);color:var(--ink2);}
+.vehicle-chip.ac{background:#ecfdf5;color:#065f46;}
+.vehicle-price{display:flex;justify-content:space-between;align-items:flex-end;border-top:1px solid var(--border);padding-top:13px;}
+.vehicle-total{font-size:24px;font-weight:900;color:var(--ink);font-family:'Cormorant Garamond',serif;}
+.vehicle-per{font-size:11px;color:var(--muted);margin-top:2px;}
+.book-vehicle-bar{position:fixed;bottom:0;left:0;right:0;background:var(--ink);padding:18px 60px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(201,151,58,.2);transform:translateY(100%);transition:transform .35s ease;z-index:900;}
+.book-vehicle-bar.visible{transform:translateY(0);}
+.bvb-fare{font-size:30px;font-weight:900;color:var(--gold2);font-family:'Cormorant Garamond',serif;}
+
+/* TRACKING */
+.tracking-layout{display:grid;grid-template-columns:1fr 360px;gap:28px;max-width:1200px;margin:0 auto;}
+.map-placeholder{background:linear-gradient(135deg,var(--ink) 0%,#1a3a4a 100%);border-radius:20px;min-height:520px;position:relative;overflow:hidden;}
+.route-svg{position:absolute;inset:0;width:100%;height:100%;}
+.tracking-panel{display:flex;flex-direction:column;gap:14px;}
+.track-card{background:var(--white);border-radius:16px;padding:20px;border:1px solid var(--border);box-shadow:var(--shadow);}
+.track-current-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;}
+.track-current-place{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--ink);}
+.progress-bar-track{height:7px;background:var(--cream2);border-radius:4px;overflow:hidden;}
+.progress-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--teal),var(--teal2));transition:width .3s;}
+.track-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.track-stat{background:var(--cream);border-radius:12px;padding:13px;text-align:center;}
+.track-stat-val{font-weight:800;font-size:17px;color:var(--ink);display:block;}
+.track-stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.route-stop{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--cream2);}
+.route-stop:last-child{border-bottom:none;}
+.route-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+
+/* NEARBY */
+.nearby-tabs{display:flex;gap:0;margin-bottom:28px;border-bottom:2px solid var(--border);}
+.nearby-tab{padding:13px 30px;font-size:14px;font-weight:600;cursor:pointer;border:none;background:none;font-family:'Outfit',sans-serif;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;}
+.nearby-tab.active{color:var(--teal);border-bottom-color:var(--teal);}
+.nearby-tab:hover:not(.active){color:var(--ink);}
+.nearby-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;}
+.nearby-card{background:var(--white);border-radius:18px;overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow);transition:all .24s;}
+.nearby-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);}
+.nearby-card-head{height:130px;display:flex;align-items:center;justify-content:center;font-size:50px;}
+.nearby-card-body{padding:18px;}
+.nearby-name{font-weight:700;font-size:15px;color:var(--ink);margin-bottom:5px;}
+.nearby-meta{font-size:12px;color:var(--muted);margin-bottom:11px;display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
+.nearby-rating{background:#fef3c7;color:#92400e;font-size:11px;padding:3px 8px;border-radius:6px;font-weight:700;}
+.nearby-price-row{display:flex;justify-content:space-between;align-items:center;}
+.nearby-price{font-weight:800;font-size:15px;color:var(--teal);}
+
+/* HOW IT WORKS */
+.how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:52px;}
+.how-step{position:relative;padding:30px 26px;background:var(--white);border-radius:20px;border:1px solid var(--border);overflow:hidden;}
+.how-step::before{content:attr(data-num);position:absolute;top:-10px;right:14px;font-family:'Cormorant Garamond',serif;font-size:76px;font-weight:700;line-height:1;color:var(--cream2);pointer-events:none;}
+.how-icon{font-size:34px;margin-bottom:14px;display:block;}
+.how-title{font-weight:700;font-size:16px;color:var(--ink);margin-bottom:7px;}
+.how-desc{font-size:13px;color:var(--muted);line-height:1.6;}
+.city-strip{background:var(--ink);padding:56px 60px;display:grid;grid-template-columns:repeat(5,1fr);gap:18px;}
+.city-tile{background:rgba(255,255,255,.04);border-radius:16px;padding:22px;text-align:center;cursor:pointer;border:1px solid rgba(255,255,255,.06);transition:all .22s;}
+.city-tile:hover{background:rgba(201,151,58,.1);border-color:rgba(201,151,58,.3);transform:translateY(-3px);}
+.city-tile .emoji{font-size:34px;display:block;margin-bottom:7px;}
+.city-tile .name{font-size:13px;font-weight:600;color:rgba(255,255,255,.8);}
+.city-tile .count{font-size:11px;color:var(--gold);margin-top:2px;}
+
+/* ════════════════════════════
+   PROFILE SCREEN
+════════════════════════════ */
+.profile-layout{display:grid;grid-template-columns:280px 1fr;gap:28px;max-width:1100px;margin:0 auto;}
+.profile-sidebar{display:flex;flex-direction:column;gap:14px;}
+.profile-hero-card{background:linear-gradient(135deg,var(--ink),var(--ink2));border-radius:20px;padding:28px;text-align:center;position:relative;overflow:hidden;}
+.profile-hero-card::before{content:'';position:absolute;top:-40px;right:-40px;width:150px;height:150px;border-radius:50%;background:rgba(201,151,58,.08);}
+.profile-avatar{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--teal));margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:32px;border:3px solid rgba(255,255,255,.15);position:relative;z-index:1;}
+.profile-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:#fff;margin-bottom:3px;}
+.profile-handle{font-size:12px;color:rgba(255,255,255,.45);}
+.profile-tier{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:5px 14px;border-radius:20px;background:rgba(201,151,58,.15);border:1px solid rgba(201,151,58,.3);font-size:12px;font-weight:700;color:var(--gold2);}
+.profile-nav-card{background:var(--white);border-radius:16px;border:1px solid var(--border);}
+.pnav-item{display:flex;align-items:center;gap:12px;padding:13px 18px;font-size:14px;font-weight:500;color:var(--ink2);cursor:pointer;transition:all .15s;border:none;background:none;width:100%;font-family:'Outfit',sans-serif;border-bottom:1px solid var(--cream2);}
+.pnav-item:last-child{border-bottom:none;}
+.pnav-item:hover{background:var(--cream);color:var(--teal);}
+.pnav-item.active{background:#ecf9f7;color:var(--teal);font-weight:700;}
+.pnav-icon{font-size:17px;width:28px;text-align:center;}
+.profile-stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:28px;}
+.pstat{background:var(--cream2);border-radius:14px;padding:18px;text-align:center;}
+.pstat-val{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:var(--ink);}
+.pstat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+.profile-panel{display:none;}
+.profile-panel.active{display:block;animation:fadeIn .3s ease;}
+.achievement-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px;}
+.achievement{background:var(--cream2);border-radius:14px;padding:18px;text-align:center;border:1px solid var(--border);}
+.achievement.earned{background:linear-gradient(135deg,#fef3c7,#fef9c3);border-color:#fde68a;}
+.achievement-icon{font-size:28px;display:block;margin-bottom:8px;}
+.achievement-name{font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:3px;}
+.achievement-desc{font-size:11px;color:var(--muted);}
+
+/* ════════════════════════════
+   HISTORY SCREEN
+════════════════════════════ */
+.history-layout{max-width:1100px;margin:0 auto;}
+.history-filters{display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap;align-items:center;}
+.hfilter{padding:7px 18px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);font-size:13px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;color:var(--ink2);transition:all .18s;}
+.hfilter:hover,.hfilter.active{background:var(--teal);border-color:var(--teal);color:#fff;}
+.history-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.history-card{background:var(--white);border-radius:18px;overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow);transition:all .22s;cursor:pointer;}
+.history-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);}
+.history-card-banner{height:110px;display:flex;align-items:center;justify-content:center;font-size:48px;position:relative;}
+.history-card-body{padding:18px;}
+.history-city{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+.history-date{font-size:12px;color:var(--muted);margin-bottom:11px;}
+.history-tags{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px;}
+.history-tag{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;}
+.history-actions{display:flex;gap:8px;}
+.history-stat-bar{display:flex;gap:0;margin-top:11px;overflow:hidden;border-radius:6px;height:5px;}
+
+/* ════════════════════════════
+   SETTINGS SCREEN
+════════════════════════════ */
+.settings-layout{display:grid;grid-template-columns:240px 1fr;gap:28px;max-width:1100px;margin:0 auto;}
+.settings-nav{background:var(--white);border-radius:16px;border:1px solid var(--border);height:fit-content;}
+.snav-item{display:flex;align-items:center;gap:11px;padding:13px 18px;font-size:14px;font-weight:500;color:var(--ink2);cursor:pointer;transition:all .15s;border:none;background:none;width:100%;font-family:'Outfit',sans-serif;border-bottom:1px solid var(--cream2);}
+.snav-item:last-child{border-bottom:none;}
+.snav-item:hover{background:var(--cream);color:var(--teal);}
+.snav-item.active{background:#ecf9f7;color:var(--teal);font-weight:700;}
+.settings-panel{display:none;}
+.settings-panel.active{display:block;animation:fadeIn .3s ease;}
+.settings-section{margin-bottom:32px;}
+.settings-section-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+.settings-section-sub{font-size:13px;color:var(--muted);margin-bottom:18px;}
+.settings-row{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid var(--cream2);}
+.settings-row:last-child{border-bottom:none;}
+.settings-row-left .sr-title{font-size:14px;font-weight:600;color:var(--ink);}
+.settings-row-left .sr-desc{font-size:12px;color:var(--muted);margin-top:2px;}
+/* Toggle */
+.toggle{position:relative;width:46px;height:26px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-track{position:absolute;inset:0;background:var(--border);border-radius:26px;cursor:pointer;transition:background .25s;}
+.toggle input:checked+.toggle-track{background:var(--teal);}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .25s;pointer-events:none;}
+.toggle input:checked~.toggle-thumb{transform:translateX(20px);}
+.select-input{padding:9px 14px;border-radius:10px;border:2px solid var(--border);font-family:'Outfit',sans-serif;font-size:13px;color:var(--ink);background:var(--cream);outline:none;cursor:pointer;}
+.select-input:focus{border-color:var(--teal);}
+.danger-zone{background:#fef2f2;border:1.5px solid #fca5a5;border-radius:16px;padding:22px;}
+.danger-title{font-weight:700;font-size:15px;color:var(--red);margin-bottom:4px;}
+.danger-desc{font-size:13px;color:#7f1d1d;margin-bottom:14px;}
+
+/* ACCOUNTS */
+.accounts-layout{max-width:900px;margin:0 auto;}
+.accounts-hero{background:linear-gradient(135deg,var(--ink),var(--ink2));border-radius:22px;padding:40px;margin-bottom:28px;display:flex;justify-content:space-between;align-items:center;position:relative;overflow:hidden;}
+.accounts-hero::after{content:'🌐';position:absolute;right:40px;font-size:120px;opacity:.05;}
+.plan-cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:32px;}
+.plan-card{background:var(--white);border-radius:18px;padding:24px;border:2px solid var(--border);transition:all .22s;cursor:pointer;position:relative;overflow:hidden;}
+.plan-card:hover{border-color:var(--teal2);transform:translateY(-3px);box-shadow:var(--shadow-lg);}
+.plan-card.current{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,151,58,.15);}
+.plan-card.current::before{content:'Current Plan';position:absolute;top:14px;right:14px;background:var(--gold);color:var(--ink);font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;}
+.plan-name{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+.plan-price{font-size:28px;font-weight:900;color:var(--teal);margin-bottom:12px;}
+.plan-price span{font-size:13px;font-weight:400;color:var(--muted);}
+.plan-features{list-style:none;display:flex;flex-direction:column;gap:7px;margin-bottom:20px;}
+.plan-features li{font-size:13px;color:var(--ink2);display:flex;align-items:center;gap:8px;}
+.plan-features li::before{content:'✓';color:var(--teal);font-weight:700;font-size:13px;}
+.payment-methods{display:flex;flex-direction:column;gap:12px;margin-bottom:28px;}
+.pm-card{background:var(--white);border-radius:14px;padding:18px 22px;border:1.5px solid var(--border);display:flex;align-items:center;gap:16px;transition:border-color .2s;}
+.pm-card:hover{border-color:var(--teal2);}
+.pm-icon{width:46px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.pm-info{flex:1;}
+.pm-name{font-size:14px;font-weight:700;color:var(--ink);}
+.pm-detail{font-size:12px;color:var(--muted);}
+.pm-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700;}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:2000;display:none;align-items:center;justify-content:center;padding:24px;}
+.modal-overlay.open{display:flex;animation:fadeIn .25s ease;}
+.modal{background:var(--white);border-radius:24px;padding:42px;max-width:440px;width:100%;text-align:center;box-shadow:0 40px 80px rgba(0,0,0,.35);animation:fadeUp .3s ease;}
+.modal-sheet{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-radius:28px 28px 0 0;padding:34px 42px;max-width:560px;margin:0 auto;box-shadow:0 -20px 60px rgba(0,0,0,.2);animation:slideUp .35s ease;max-height:90vh;overflow-y:auto;}
+
+/* UTILITIES */
+.flex-between{display:flex;justify-content:space-between;align-items:center;}
+.hidden{display:none!important;}
+.spinning{animation:spin 1s linear infinite;display:inline-block;}
+.mt8{margin-top:8px;}.mt12{margin-top:12px;}.mt16{margin-top:16px;}.mt20{margin-top:20px;}.mt24{margin-top:24px;}.mt32{margin-top:32px;}
+.mb8{margin-bottom:8px;}.mb12{margin-bottom:12px;}.mb16{margin-bottom:16px;}.mb20{margin-bottom:20px;}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;}
+.badge-green{background:#d1fae5;color:#065f46;}
+.badge-gold{background:#fef3c7;color:#92400e;}
+.badge-blue{background:#dbeafe;color:#1d4ed8;}
+.badge-purple{background:#ede9fe;color:#5b21b6;}
+.divider{height:1px;background:var(--border);margin:20px 0;}
+
+@media(max-width:1024px){
+  nav{padding:14px 24px;}
+  .section{padding:64px 24px;}
+  .planner-grid,.tracking-layout,.profile-layout,.settings-layout{grid-template-columns:1fr;}
+  .vehicles-grid{grid-template-columns:repeat(2,1fr);}
+  .nearby-grid,.history-grid,.plan-cards-grid{grid-template-columns:repeat(2,1fr);}
+  .achievement-grid{grid-template-columns:repeat(2,1fr);}
+  .hero-content{padding:0 24px;}
+  .hero-title{font-size:52px;}
+  .hero-stats{left:24px;right:24px;bottom:24px;gap:20px;}
+  .city-strip{padding:36px 24px;grid-template-columns:repeat(3,1fr);}
+  .how-grid{grid-template-columns:repeat(2,1fr);}
+  .book-vehicle-bar{padding:14px 24px;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo" onclick="showScreen('home')">🪔 <span>Vizztapp</span></div>
+  <div class="nav-links">
+    <button class="nav-link active" onclick="showScreen('home')">Home</button>
+    <button class="nav-link" onclick="showScreen('plan')">Plan Trip</button>
+    
+    <button class="nav-link" onclick="showScreen('tracking')">Live Track</button>
+    <button class="nav-link" onclick="showScreen('nearby')">Nearby</button>
+    <button class="nav-link" onclick="showScreen('history')">History</button>
+  </div>
+  <div class="nav-right">
+    <button class="sos-btn" onclick="openSOS()">🆘 SOS 1033</button>
+    <div style="position:relative;">
+      <div class="profile-avatar-btn" onclick="openProfileQuick()" id="nav-avatar" style="position:relative;">
+        <span style="pointer-events:none;">👤</span>
+        <span id="online-dot" style="position:absolute;bottom:-1px;right:-1px;width:10px;height:10px;border-radius:50%;background:#10b981;border:2px solid rgba(15,25,35,.93);pointer-events:none;"></span>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ HOME ══ -->
+<div id="screen-home" class="screen active">
+  <section id="hero-section" style="padding-top:0;">
+    <div class="hero-bg-art"></div>
+    <div class="mandala-ring"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow">India's Smartest Travel Companion</div>
+      <h1 class="hero-title">Journey<br/>Beyond<br/><em>Ordinary.</em></h1>
+      <p class="hero-sub">AI-optimized itineraries built around real-time crowd levels, live weather, and the most scenic routes — with instant ride booking across 6 vehicle types.</p>
+      <div class="hero-cta">
+        <button class="btn-primary" onclick="showScreen('plan')">✨ Plan My Trip</button>
+        
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><span class="hero-stat-num">5</span><span class="hero-stat-label">Cities Covered</span></div>
+      <div class="hero-stat"><span class="hero-stat-num">40+</span><span class="hero-stat-label">Top Attractions</span></div>
+      <div class="hero-stat"><span class="hero-stat-num">6</span><span class="hero-stat-label">Vehicle Types</span></div>
+      <div class="hero-stat"><span class="hero-stat-num">24/7</span><span class="hero-stat-label">SOS Support</span></div>
+    </div>
+  </section>
+  <section class="section" style="background:var(--cream2);">
+    <div class="section-tag">How it works</div>
+    <h2 class="section-title">Four steps to your<br/><em>perfect journey</em></h2>
+    <div class="how-grid">
+      </div>
+      <div class="how-step" data-num="04"><span class="how-icon">📍</span><div class="how-title">Live Track & Explore</div><div class="how-desc">Real-time tracking across your route with hotel and restaurant recommendations at every stop.</div></div>
+    </div>
+  </section>
+  <div class="city-strip">
+    <div class="city-tile" onclick="selectCityFromHome('Delhi')"><span class="emoji">🕌</span><div class="name">Delhi</div><div class="count">8 attractions</div></div>
+    <div class="city-tile" onclick="selectCityFromHome('Mumbai')"><span class="emoji">🌊</span><div class="name">Mumbai</div><div class="count">8 attractions</div></div>
+    <div class="city-tile" onclick="selectCityFromHome('Jaipur')"><span class="emoji">🏰</span><div class="name">Jaipur</div><div class="count">8 attractions</div></div>
+    <div class="city-tile" onclick="selectCityFromHome('Goa')"><span class="emoji">🏖️</span><div class="name">Goa</div><div class="count">8 attractions</div></div>
+    <div class="city-tile" onclick="selectCityFromHome('Agra')"><span class="emoji">🕍</span><div class="name">Agra</div><div class="count">8 attractions</div></div>
+  </div>
+</div>
+
+<!-- ══ PLAN ══ -->
+<div id="screen-plan" class="screen">
+  <section class="section">
+    <div class="section-tag">Trip Planner</div>
+    <h2 class="section-title">Build your <em>itinerary</em></h2>
+    <p class="section-sub">Our AI optimizes stop order based on live crowd data and weather conditions.</p>
+    <div class="planner-grid mt32">
+      <div class="card">
+        <div class="card-title">📍 Select City & Places</div>
+        <div class="card-sub">Choose your destination and tick the spots you want to visit.</div>
+        <div class="input-wrap">
+          <span class="input-icon">🏙️</span>
+          <input id="city-input" class="text-input" placeholder="Type a city name..." autocomplete="off" oninput="handleCityInput(this.value)"/>
+          <div id="suggestions-box" class="suggestions-box"></div>
+        </div>
+        <div id="places-section" class="hidden">
+          <div class="flex-between mt8 mb12">
+            <div style="font-weight:700;font-size:14px;color:var(--ink);" id="places-label">Places</div>
+            <div id="selected-count" style="font-size:12px;color:var(--muted);">0 selected</div>
+          </div>
+          <div id="places-grid" class="places-grid"></div>
+        </div>
+        <button id="generate-btn" class="generate-btn hidden" onclick="generatePlan()" disabled>✨ Generate Smart Plan</button>
+      </div>
+      <div class="card">
+        <div id="plan-placeholder" style="text-align:center;padding:56px 20px;color:var(--muted);">
+          <div style="font-size:60px;margin-bottom:14px;">🗺️</div>
+          <div style="font-size:16px;font-weight:600;color:var(--ink);margin-bottom:7px;">Your itinerary will appear here</div>
+          <div style="font-size:13px;">Select a city and at least 2 places to generate your optimized plan.</div>
+        </div>
+        <div id="plan-loading" class="hidden" style="text-align:center;padding:56px 20px;">
+          <div style="font-size:44px;" class="spinning">⚙️</div>
+          <div style="margin-top:14px;font-size:15px;font-weight:600;color:var(--ink);">Optimizing your route...</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:5px;">Analysing crowd levels & weather</div>
+          <div style="margin-top:18px;display:flex;justify-content:center;gap:7px;">
+            <div style="width:9px;height:9px;border-radius:50%;background:var(--gold);animation:bounce .8s ease 0s infinite;"></div>
+            <div style="width:9px;height:9px;border-radius:50%;background:var(--gold);animation:bounce .8s ease .2s infinite;"></div>
+            <div style="width:9px;height:9px;border-radius:50%;background:var(--gold);animation:bounce .8s ease .4s infinite;"></div>
+          </div>
+        </div>
+        <div id="plan-output" class="hidden">
+          <div id="plan-info-bar" class="info-bar"></div>
+          <div class="flex-between mb20">
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--ink);" id="plan-title">Itinerary</div>
+              <div style="font-size:12px;color:var(--muted);" id="plan-subtitle"></div>
+            </div>
+            <div style="display:flex;gap:9px;">
+              <button class="btn btn-teal" onclick="showScreen('vehicles')">🚗 Book Ride</button>
+              <button class="btn btn-ghost" onclick="showScreen('tracking')">📍 Track</button>
+            </div>
+          </div>
+          <div id="itinerary-list" class="itinerary-list"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ══ TRACKING ══ -->
+<div id="screen-tracking" class="screen">
+  <section class="section">
+    <div class="section-tag">Live Tracking</div>
+    <h2 class="section-title">Your journey, <em>in real time</em></h2>
+    <div id="no-plan-tracking" style="text-align:center;padding:56px;background:var(--white);border-radius:20px;border:1px solid var(--border);">
+      <div style="font-size:60px;margin-bottom:14px;">📍</div>
+      <div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:7px;">No plan yet</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:22px;">Generate a trip plan first to start live tracking.</div>
+      <button class="btn btn-gold" onclick="showScreen('plan')">✨ Plan Your Trip</button>
+    </div>
+    <div id="tracking-content" class="hidden">
+      <div class="tracking-layout mt32">
+        <div class="map-placeholder">
+          <svg class="route-svg" viewBox="0 0 600 520" preserveAspectRatio="xMidYMid meet">
+            <defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#3aab97"/><stop offset="100%" style="stop-color:#c9973a"/></linearGradient></defs>
+            <path d="M 80 440 C 120 370,200 330,240 270 C 280 210,260 150,320 110 C 380 70,460 100,500 70" fill="none" stroke="url(#rg)" stroke-width="3" stroke-dasharray="8,6" opacity=".5" style="stroke-dashoffset:1000;animation:drawLine 3s ease forwards;"/>
+            <circle id="moving-dot" cx="80" cy="440" r="9" fill="#3aab97"><animate attributeName="r" values="9;13;9" dur="1.5s" repeatCount="indefinite"/></circle>
+          </svg>
+          <div id="map-stops-overlay" style="position:absolute;inset:0;"></div>
+        </div>
+        <div class="tracking-panel">
+          <div id="tracking-vehicle-card" class="track-card hidden">
+            <div class="track-current-label">Your Ride</div>
+            <div style="display:flex;align-items:center;gap:13px;margin-top:5px;">
+              <div style="font-size:34px;" id="tv-icon"></div>
+              <div><div style="font-weight:700;font-size:16px;color:var(--ink);" id="tv-name"></div><div style="font-size:12px;color:var(--muted);" id="tv-driver"></div></div>
+              <div style="margin-left:auto;text-align:right;"><div style="font-size:10px;color:var(--muted);">Status</div><div id="tv-status" style="font-size:13px;font-weight:700;color:var(--teal);">On Route</div></div>
+            </div>
+          </div>
+          <div class="track-card">
+            <div class="track-current-label">📍 Currently At</div>
+            <div class="track-current-place" id="track-current">—</div>
+            <div style="margin-top:12px;">
+              <div class="flex-between mb8"><span style="font-size:12px;color:var(--muted);">To next stop</span><span style="font-size:12px;font-weight:700;color:var(--teal);" id="track-progress-pct">0%</span></div>
+              <div class="progress-bar-track"><div class="progress-bar-fill" id="track-progress-bar" style="width:0%;"></div></div>
+            </div>
+          </div>
+          <div class="track-stats">
+            <div class="track-stat"><span class="track-stat-val" id="ts-visited">0/0</span><span class="track-stat-label">Visited</span></div>
+            <div class="track-stat"><span class="track-stat-val" id="ts-distance">0 km</span><span class="track-stat-label">Distance</span></div>
+            <div class="track-stat"><span class="track-stat-val" id="ts-eta">—</span><span class="track-stat-label">ETA</span></div>
+          </div>
+          <div class="track-card" style="flex:1;">
+            <div class="track-current-label" style="margin-bottom:11px;">Route Stops</div>
+            <div id="route-stop-list"></div>
+          </div>
+          <button id="track-btn" onclick="toggleTracking()" style="width:100%;padding:15px;border-radius:12px;border:none;font-weight:700;font-size:15px;cursor:pointer;font-family:'Outfit',sans-serif;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;box-shadow:0 8px 24px rgba(42,127,111,.3);transition:all .2s;">▶ Start Live Tracking</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ══ NEARBY ══ -->
+<div id="screen-nearby" class="screen">
+  <section class="section">
+    <div class="section-tag">Nearby Places</div>
+    <h2 class="section-title">Where to <em>stay & eat</em></h2>
+    <p class="section-sub">Handpicked top-rated hotels and restaurants along your route.</p>
+    <div class="nearby-tabs mt32">
+      <button class="nearby-tab active" onclick="switchNearby('hotels',this)">🏨 Hotels</button>
+      <button class="nearby-tab" onclick="switchNearby('restaurants',this)">🍽️ Restaurants</button>
+    </div>
+    <div id="nearby-grid" class="nearby-grid"></div>
+  </section>
+</div>
+
+<!-- ══ HISTORY ══ -->
+<div id="screen-history" class="screen">
+  <section class="section">
+    <div class="section-tag">Trip History</div>
+    <h2 class="section-title">Your <em>journeys</em> so far</h2>
+    <p class="section-sub">Every trip you've taken, tracked and recorded for easy re-booking.</p>
+    <div class="history-filters mt32">
+      <span style="font-size:13px;color:var(--muted);font-weight:600;margin-right:4px;">Filter:</span>
+      <button class="hfilter active" onclick="filterHistory('all',this)">All Trips</button>
+      <button class="hfilter" onclick="filterHistory('completed',this)">Completed</button>
+      <button class="hfilter" onclick="filterHistory('upcoming',this)">Upcoming</button>
+      <button class="hfilter" onclick="filterHistory('cancelled',this)">Cancelled</button>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:12px;color:var(--muted);">Sort:</span>
+        <select class="select-input" onchange="renderHistory(this.value)">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="distance">Most Distance</option>
+        </select>
+      </div>
+    </div>
+    <!-- Summary cards -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px;" id="history-summary"></div>
+    <div id="history-grid" class="history-grid"></div>
+  </section>
+</div>
+
+<!-- ══ PROFILE ══ -->
+<div id="screen-profile" class="screen">
+  <section class="section">
+    <div class="section-tag">My Profile</div>
+    <h2 class="section-title">Hello, <em>Arjun</em> 👋</h2>
+    <div class="profile-layout mt32">
+      <!-- Sidebar -->
+      <div class="profile-sidebar">
+        <div class="profile-hero-card">
+          <div class="profile-avatar">👤</div>
+          <div class="profile-name">Arjun Sharma</div>
+          <div class="profile-handle">@arjun.sharma</div>
+          <div class="profile-tier">🥇 Gold Explorer</div>
+          <div style="margin-top:16px;font-size:12px;color:rgba(255,255,255,.4);">Member since January 2024</div>
+        </div>
+        <div class="profile-nav-card">
+          <button class="pnav-item active" onclick="switchProfilePanel('overview',this)"><span class="pnav-icon">🏠</span> Overview</button>
+          <button class="pnav-item" onclick="switchProfilePanel('edit',this)"><span class="pnav-icon">✏️</span> Edit Profile</button>
+          <button class="pnav-item" onclick="switchProfilePanel('achievements',this)"><span class="pnav-icon">🏆</span> Achievements</button>
+          <button class="pnav-item" onclick="switchProfilePanel('preferences',this)"><span class="pnav-icon">❤️</span> Travel Preferences</button>
+          <button class="pnav-item" onclick="showScreen('accounts')"><span class="pnav-icon">💳</span> Subscription</button>
+          <button class="pnav-item" onclick="showScreen('settings')"><span class="pnav-icon">⚙️</span> Settings</button>
+        </div>
+      </div>
+      <!-- Main -->
+      <div>
+        <!-- Overview -->
+        <div class="profile-panel active" id="panel-overview">
+          <div class="profile-stats-row">
+            <div class="pstat"><div class="pstat-val">12</div><div class="pstat-label">Trips Taken</div></div>
+            <div class="pstat"><div class="pstat-val">5</div><div class="pstat-label">Cities Explored</div></div>
+            <div class="pstat"><div class="pstat-val">247 km</div><div class="pstat-label">Total Distance</div></div>
+          </div>
+          <div class="card mb20">
+            <div class="card-title">Recent Activity</div>
+            <div class="card-sub">Your last 3 trips at a glance</div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--cream);border-radius:12px;">
+                <div style="font-size:24px;">🏰</div>
+                <div style="flex:1;"><div style="font-weight:700;font-size:14px;color:var(--ink);">Jaipur</div><div style="font-size:12px;color:var(--muted);">Dec 28, 2024 · 5 stops · Sedan 🚘</div></div>
+                <div style="text-align:right;"><div style="font-weight:800;font-size:15px;color:var(--teal);">₹1,440</div><span class="badge badge-green">completed</span></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--cream);border-radius:12px;">
+                <div style="font-size:24px;">🏖️</div>
+                <div style="flex:1;"><div style="font-weight:700;font-size:14px;color:var(--ink);">Goa</div><div style="font-size:12px;color:var(--muted);">Nov 15, 2024 · 4 stops · Mini Cab 🚗</div></div>
+                <div style="text-align:right;"><div style="font-weight:800;font-size:15px;color:var(--teal);">₹905</div><span class="badge badge-green">completed</span></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--cream);border-radius:12px;">
+                <div style="font-size:24px;">🕌</div>
+                <div style="flex:1;"><div style="font-weight:700;font-size:14px;color:var(--ink);">Delhi</div><div style="font-size:12px;color:var(--muted);">Oct 3, 2024 · 6 stops · SUV 🚙</div></div>
+                <div style="text-align:right;"><div style="font-weight:800;font-size:15px;color:var(--teal);">₹2,095</div><span class="badge badge-green">completed</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Favourite Cities</div>
+            <div class="card-sub">Based on your most visited destinations</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
+              <span class="badge badge-gold" style="font-size:13px;padding:7px 16px;">Jaipur 🏰</span>
+              <span class="badge badge-gold" style="font-size:13px;padding:7px 16px;">Goa 🏖️</span>
+              <span class="badge badge-gold" style="font-size:13px;padding:7px 16px;">Delhi 🕌</span>
+              <span class="badge badge-gold" style="font-size:13px;padding:7px 16px;">Mumbai 🌊</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit Profile -->
+        <div class="profile-panel" id="panel-edit">
+          <div class="card">
+            <div class="card-title">Edit Profile</div>
+            <div class="card-sub">Update your personal information</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+              <div><label class="input-label">First Name</label><input class="text-input-plain" value="Arjun"/></div>
+              <div><label class="input-label">Last Name</label><input class="text-input-plain" value="Sharma"/></div>
+              <div><label class="input-label">Email</label><input class="text-input-plain" value="arjun.sharma@gmail.com"/></div>
+              <div><label class="input-label">Phone</label><input class="text-input-plain" value="+91 98455 12378"/></div>
+              <div style="grid-column:span 2;"><label class="input-label">Bio</label><textarea class="text-input-plain" rows="3" style="resize:none;">Passionate traveller exploring India one city at a time 🇮🇳</textarea></div>
+              <div><label class="input-label">Home City</label><input class="text-input-plain" value="Bengaluru"/></div>
+              <div><label class="input-label">Date of Birth</label><input class="text-input-plain" type="date" value="1995-04-12"/></div>
+            </div>
+            <div class="divider"></div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;">
+              <button class="btn btn-ghost">Cancel</button>
+              <button class="btn btn-teal" onclick="showToast('Profile updated successfully!')">Save Changes</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="profile-panel" id="panel-achievements">
+          <div class="card mb20">
+            <div class="card-title">🏆 Achievements</div>
+            <div class="card-sub">Badges earned through your travels</div>
+            <div class="achievement-grid">
+              <div class="achievement earned"><span class="achievement-icon">🌟</span><div class="achievement-name">First Journey</div><div class="achievement-desc">Completed your first trip</div></div>
+              <div class="achievement earned"><span class="achievement-icon">🗺️</span><div class="achievement-name">Explorer</div><div class="achievement-desc">Visited 3 different cities</div></div>
+              <div class="achievement earned"><span class="achievement-icon">🏰</span><div class="achievement-name">Heritage Seeker</div><div class="achievement-desc">Visited 5 UNESCO sites</div></div>
+              <div class="achievement earned"><span class="achievement-icon">⚡</span><div class="achievement-name">Speed Tripper</div><div class="achievement-desc">Completed 3 stops in one day</div></div>
+              <div class="achievement"><span class="achievement-icon" style="opacity:.35">🌧️</span><div class="achievement-name" style="color:var(--muted);">Rain Rider</div><div class="achievement-desc">🔒 Locked</div></div>
+              <div class="achievement"><span class="achievement-icon" style="opacity:.35">🌅</span><div class="achievement-name" style="color:var(--muted);">Early Bird</div><div class="achievement-desc">🔒 Locked</div></div>
+              <div class="achievement"><span class="achievement-icon" style="opacity:.35">🚀</span><div class="achievement-name" style="color:var(--muted);">Jet Setter</div><div class="achievement-desc">🔒 Locked</div></div>
+              <div class="achievement"><span class="achievement-icon" style="opacity:.35">👑</span><div class="achievement-name" style="color:var(--muted);">Grand Explorer</div><div class="achievement-desc">🔒 Locked</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Progress Towards Next Badge</div>
+            <div class="card-sub">Rain Rider — Travel during monsoon</div>
+            <div style="margin-top:12px;">
+              <div class="flex-between mb8"><span style="font-size:13px;color:var(--muted);">Monsoon trips</span><span style="font-size:13px;font-weight:700;">0 / 1</span></div>
+              <div class="progress-bar-track"><div class="progress-bar-fill" style="width:0%;"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preferences -->
+        <div class="profile-panel" id="panel-preferences">
+          <div class="card">
+            <div class="card-title">❤️ Travel Preferences</div>
+            <div class="card-sub">Personalise recommendations to match your style</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px;">
+              <div><label class="input-label">Preferred Vehicle</label>
+                <select class="select-input" style="width:100%;padding:11px 14px;">
+                  <option>Sedan 🚘</option><option>SUV 🚙</option><option>Mini Cab 🚗</option><option>Auto 🛺</option>
+                </select>
+              </div>
+              <div><label class="input-label">Trip Pace</label>
+                <select class="select-input" style="width:100%;padding:11px 14px;">
+                  <option>Relaxed</option><option>Moderate</option><option>Fast-paced</option>
+                </select>
+              </div>
+              <div><label class="input-label">Interests</label>
+                <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:4px;">
+                  <span class="badge badge-gold" style="cursor:pointer;">Heritage 🏛️</span>
+                  <span class="badge badge-gold" style="cursor:pointer;">Nature 🌿</span>
+                  <span class="badge badge-gold" style="cursor:pointer;">Food 🍛</span>
+                  <span class="badge badge-gold" style="cursor:pointer;">Adventure 🧗</span>
+                  <span class="badge badge-gold" style="cursor:pointer;">Beaches 🏖️</span>
+                  <span class="badge badge-gold" style="cursor:pointer;">Markets 🛍️</span>
+                </div>
+              </div>
+              <div><label class="input-label">Budget Range</label>
+                <select class="select-input" style="width:100%;padding:11px 14px;">
+                  <option>Budget (₹500–₹1,500/day)</option><option selected>Mid-range (₹1,500–₹4,000/day)</option><option>Premium (₹4,000+/day)</option>
+                </select>
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div style="display:flex;justify-content:flex-end;">
+              <button class="btn btn-teal" onclick="showToast('Preferences saved!')">Save Preferences</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ══ SETTINGS ══ -->
+<div id="screen-settings" class="screen">
+  <section class="section">
+    <div class="section-tag">Settings</div>
+    <h2 class="section-title">App <em>preferences</em></h2>
+    <p class="section-sub">Control how Vizztapp looks, behaves, and communicates with you.</p>
+    <div class="settings-layout mt32">
+      <div class="settings-nav">
+        <button class="snav-item active" onclick="switchSettingsPanel('notifications',this)">🔔 &nbsp;Notifications</button>
+        <button class="snav-item" onclick="switchSettingsPanel('privacy',this)">🔒 &nbsp;Privacy & Security</button>
+        <button class="snav-item" onclick="switchSettingsPanel('display',this)">🎨 &nbsp;Display & Language</button>
+        <button class="snav-item" onclick="switchSettingsPanel('travel',this)">✈️ &nbsp;Travel Settings</button>
+        <button class="snav-item" onclick="switchSettingsPanel('data',this)">📦 &nbsp;Data & Storage</button>
+        <button class="snav-item" onclick="switchSettingsPanel('about',this)">ℹ️ &nbsp;About</button>
+      </div>
+      <div>
+        <!-- Notifications -->
+        <div class="settings-panel active card" id="spanel-notifications">
+          <div class="settings-section">
+            <div class="settings-section-title">Notifications</div>
+            <div class="settings-section-sub">Choose what alerts you receive from Vizztapp</div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Trip Reminders</div><div class="sr-desc">Get notified before your scheduled trips</div></div>
+              <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Driver Arrival Alerts</div><div class="sr-desc">Alert when your driver is nearby</div></div>
+              <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Crowd Level Warnings</div><div class="sr-desc">Warn when a stop becomes very crowded</div></div>
+              <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Weather Updates</div><div class="sr-desc">Receive live weather alerts for your route</div></div>
+              <label class="toggle"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Special Offers</div><div class="sr-desc">Promotional deals and discounts</div></div>
+              <label class="toggle"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">New City Additions</div><div class="sr-desc">When new cities are added to Vizztapp</div></div>
+              <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Privacy -->
+        <div class="settings-panel card" id="spanel-privacy">
+          <div class="settings-section">
+            <div class="settings-section-title">Privacy & Security</div>
+            <div class="settings-section-sub">Control your data and account security</div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Share Location with Driver</div><div class="sr-desc">Allow driver to see your real-time location</div></div>
+              <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Location History</div><div class="sr-desc">Save your travel location history</div></div>
+              <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Two-Factor Authentication</div><div class="sr-desc">Require OTP when signing in</div></div>
+              <label class="toggle"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Public Profile</div><div class="sr-desc">Allow others to see your travel profile</div></div>
+              <label class="toggle"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Analytics Sharing</div><div class="sr-desc">Help improve Vizztapp by sharing anonymised data</div></div>
+              <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div class="settings-section">
+            <div class="settings-section-title">Change Password</div>
+            <div style="display:grid;gap:12px;margin-top:12px;max-width:380px;">
+              <input class="text-input-plain" type="password" placeholder="Current password"/>
+              <input class="text-input-plain" type="password" placeholder="New password"/>
+              <input class="text-input-plain" type="password" placeholder="Confirm new password"/>
+              <button class="btn btn-teal" style="width:fit-content;" onclick="showToast('Password updated successfully!')">Update Password</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Display -->
+        <div class="settings-panel card" id="spanel-display">
+          <div class="settings-section">
+            <div class="settings-section-title">Display & Language</div>
+            <div class="settings-section-sub">Customise how the app looks and communicates</div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Language</div><div class="sr-desc">Select your preferred language</div></div>
+              <select class="select-input"><option>English</option><option>Hindi — हिंदी</option><option>Tamil — தமிழ்</option><option>Telugu — తెలుగు</option><option>Bengali — বাংলা</option></select>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Currency</div><div class="sr-desc">All prices shown in</div></div>
+              <select class="select-input"><option selected>₹ Indian Rupee</option><option>$ US Dollar</option><option>€ Euro</option></select>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Distance Unit</div><div class="sr-desc">Kilometres or Miles</div></div>
+              <select class="select-input"><option selected>Kilometres (km)</option><option>Miles (mi)</option></select>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Map Style</div><div class="sr-desc">Choose your preferred map theme</div></div>
+              <select class="select-input"><option selected>Standard</option><option>Satellite</option><option>Dark Mode</option><option>Terrain</option></select>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Compact Mode</div><div class="sr-desc">Reduce spacing and padding</div></div>
+              <label class="toggle"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Travel Settings -->
+        <div class="settings-panel card" id="spanel-travel">
+          <div class="settings-section">
+            <div class="settings-section-title">Travel Settings</div>
+            <div class="settings-section-sub">Default preferences for trip planning</div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Optimise for Crowd Avoidance</div><div class="sr-desc">Prioritise less crowded times in route planning</div></div>
+              <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Weather-Smart Routing</div><div class="sr-desc">Adjust itinerary based on forecast</div></div>
+              <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Auto-Book Return Ride</div><div class="sr-desc">Suggest a return ride at end of tour</div></div>
+              <label class="toggle"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Default Start Time</div><div class="sr-desc">Plan trips starting at this time</div></div>
+              <input type="time" value="09:00" style="padding:9px 13px;border-radius:10px;border:2px solid var(--border);font-family:'Outfit',sans-serif;font-size:13px;color:var(--ink);background:var(--cream);outline:none;"/>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Accessibility Mode</div><div class="sr-desc">Prefer wheelchair-accessible routes</div></div>
+              <label class="toggle"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data -->
+        <div class="settings-panel card" id="spanel-data">
+          <div class="settings-section">
+            <div class="settings-section-title">Data & Storage</div>
+            <div class="settings-section-sub">Manage your stored data and downloads</div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Offline Maps</div><div class="sr-desc">Cache maps for offline use</div></div>
+              <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Auto-save Itineraries</div><div class="sr-desc">Automatically save all generated plans</div></div>
+              <label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-left"><div class="sr-title">Cache Size</div><div class="sr-desc">Currently using 42 MB</div></div>
+              <button class="btn btn-ghost" style="padding:8px 16px;font-size:12px;" onclick="showToast('Cache cleared successfully!')">Clear Cache</button>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div class="danger-zone">
+            <div class="danger-title">Danger Zone</div>
+            <div class="danger-desc">These actions are permanent and cannot be undone.</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn btn-ghost" style="border-color:#fca5a5;color:var(--red);" onclick="showToast('Trip history cleared.')">🗑️ Clear Trip History</button>
+              <button class="btn btn-red" onclick="showToast('Account deletion requested. You will receive a confirmation email.')">⚠️ Delete Account</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- About -->
+        <div class="settings-panel card" id="spanel-about">
+          <div style="text-align:center;padding:30px 20px;">
+            <div style="font-size:64px;margin-bottom:12px;">🪔</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;color:var(--ink);margin-bottom:4px;">Vizztapp</div>
+            <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">Version 2.4.1 · Built with ❤️ for India</div>
+            <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
+              <button class="btn btn-ghost">Privacy Policy</button>
+              <button class="btn btn-ghost">Terms of Service</button>
+              <button class="btn btn-ghost">Help & Support</button>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            ${[['🚀','App Version','2.4.1'],['📦','Last Updated','March 2026'],['🌐','Server Region','Mumbai, India'],['🔐','Security','TLS 1.3 Encrypted']].map(([i,l,v])=>`<div style="background:var(--cream2);border-radius:12px;padding:16px;"><div style="font-size:20px;margin-bottom:6px;">${i}</div><div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">${l}</div><div style="font-size:14px;font-weight:700;color:var(--ink);margin-top:2px;">${v}</div></div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ══ ACCOUNTS ══ -->
+<div id="screen-accounts" class="screen">
+  <section class="section">
+    <div class="section-tag">Account & Plans</div>
+    <h2 class="section-title">Your <em>subscription</em></h2>
+    <!-- Hero -->
+    <div class="accounts-hero mt32">
+      <div>
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Current Plan</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:700;color:#fff;margin-bottom:6px;">Gold Explorer</div>
+        <div style="color:rgba(255,255,255,.55);font-size:14px;margin-bottom:18px;">Renews on April 1, 2026 · ₹499/month</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <span class="badge badge-gold">🗺️ Unlimited Trips</span>
+          <span class="badge badge-gold">🚗 Priority Rides</span>
+          <span class="badge badge-gold">📍 Live Tracking</span>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Days Remaining</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:72px;font-weight:700;color:var(--gold2);line-height:1;">18</div>
+        <div style="color:rgba(255,255,255,.4);font-size:13px;">days until renewal</div>
+      </div>
+    </div>
+    <!-- Plans -->
+    <h3 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--ink);margin:32px 0 20px;">Available Plans</h3>
+    <div class="plan-cards-grid">
+      <div class="plan-card">
+        <div class="plan-name">Explorer</div>
+        <div class="plan-price">Free <span>/forever</span></div>
+        <ul class="plan-features">
+          <li>2 trips per month</li>
+          <li>3 vehicle types</li>
+          <li>Basic route planning</li>
+          <li>Standard support</li>
+        </ul>
+        <button class="btn btn-ghost" style="width:100%;">Downgrade</button>
+      </div>
+      <div class="plan-card current">
+        <div class="plan-name">Gold</div>
+        <div class="plan-price">₹499 <span>/month</span></div>
+        <ul class="plan-features">
+          <li>Unlimited trips</li>
+          <li>All 6 vehicle types</li>
+          <li>AI crowd & weather routing</li>
+          <li>Live tracking</li>
+          <li>Priority driver matching</li>
+        </ul>
+        <button class="btn btn-gold" style="width:100%;" onclick="showToast('Already on this plan!')">Current Plan</button>
+      </div>
+      <div class="plan-card">
+        <div class="plan-name">Platinum</div>
+        <div class="plan-price">₹999 <span>/month</span></div>
+        <ul class="plan-features">
+          <li>Everything in Gold</li>
+          <li>Dedicated travel concierge</li>
+          <li>Hotel & restaurant booking</li>
+          <li>Airport transfers included</li>
+          <li>24/7 priority support</li>
+        </ul>
+        <button class="btn btn-teal" style="width:100%;" onclick="showToast('Upgrade initiated! Redirecting to payment...')">Upgrade →</button>
+      </div>
+    </div>
+    <!-- Payment Methods -->
+    <h3 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--ink);margin:32px 0 20px;">Payment Methods</h3>
+    <div class="payment-methods">
+      <div class="pm-card">
+        <div class="pm-icon" style="background:#dbeafe;">💳</div>
+        <div class="pm-info"><div class="pm-name">HDFC Bank Visa ···· 4821</div><div class="pm-detail">Expires 08/2027</div></div>
+        <span class="pm-badge" style="background:#d1fae5;color:#065f46;">Default</span>
+        <button class="btn btn-ghost" style="padding:7px 14px;font-size:12px;margin-left:8px;">Remove</button>
+      </div>
+      <div class="pm-card">
+        <div class="pm-icon" style="background:#fef3c7;">🏦</div>
+        <div class="pm-info"><div class="pm-name">UPI — arjun@okicici</div><div class="pm-detail">ICICI Bank</div></div>
+        <span class="pm-badge" style="background:#ede9fe;color:#5b21b6;">UPI</span>
+        <button class="btn btn-ghost" style="padding:7px 14px;font-size:12px;margin-left:8px;">Remove</button>
+      </div>
+      <div class="pm-card">
+        <div class="pm-icon" style="background:#ecfdf5;">📱</div>
+        <div class="pm-info"><div class="pm-name">Google Pay</div><div class="pm-detail">Linked account</div></div>
+        <button class="btn btn-ghost" style="padding:7px 14px;font-size:12px;margin-left:8px;">Remove</button>
+      </div>
+    </div>
+    <button class="btn btn-ghost" onclick="showToast('Add payment method flow would open here.')">+ Add Payment Method</button>
+    <!-- Transaction history -->
+    <h3 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--ink);margin:32px 0 20px;">Recent Transactions</h3>
+    <div class="card">
+      <div class="settings-row">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:40px;height:40px;border-radius:12px;background:#fef3c7;display:flex;align-items:center;justify-content:center;font-size:18px;">⭐</div>
+          <div><div style="font-size:14px;font-weight:600;color:var(--ink);">Gold Plan — March 2026</div><div style="font-size:12px;color:var(--muted);">Mar 1, 2026 · Subscription</div></div>
+        </div>
+        <div style="text-align:right;"><div style="font-weight:800;font-size:15px;color:var(--ink);">₹499</div><span class="badge badge-green" style="font-size:10px;">Paid</span></div>
+      </div>
+      <div class="settings-row">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:40px;height:40px;border-radius:12px;background:#d1fae5;display:flex;align-items:center;justify-content:center;font-size:18px;">🚗</div>
+          <div><div style="font-size:14px;font-weight:600;color:var(--ink);">Sedan Ride — Jaipur Tour</div><div style="font-size:12px;color:var(--muted);">Feb 28, 2026 · Ride</div></div>
+        </div>
+        <div style="text-align:right;"><div style="font-weight:800;font-size:15px;color:var(--ink);">₹1,440</div><span class="badge badge-green" style="font-size:10px;">Paid</span></div>
+      </div>
+      <div class="settings-row">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:40px;height:40px;border-radius:12px;background:#fef3c7;display:flex;align-items:center;justify-content:center;font-size:18px;">⭐</div>
+          <div><div style="font-size:14px;font-weight:600;color:var(--ink);">Gold Plan — February 2026</div><div style="font-size:12px;color:var(--muted);">Feb 1, 2026 · Subscription</div></div>
+        </div>
+        <div style="text-align:right;"><div style="font-weight:800;font-size:15px;color:var(--ink);">₹499</div><span class="badge badge-green" style="font-size:10px;">Paid</span></div>
+      </div>
+      <div class="settings-row">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:40px;height:40px;border-radius:12px;background:#d1fae5;display:flex;align-items:center;justify-content:center;font-size:18px;">🚗</div>
+          <div><div style="font-size:14px;font-weight:600;color:var(--ink);">Mini Cab Ride — Goa Tour</div><div style="font-size:12px;color:var(--muted);">Jan 22, 2026 · Ride</div></div>
+        </div>
+        <div style="text-align:right;"><div style="font-weight:800;font-size:15px;color:var(--ink);">₹905</div><span class="badge badge-green" style="font-size:10px;">Paid</span></div>
+      </div>
+      <div class="settings-row">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:40px;height:40px;border-radius:12px;background:#fef3c7;display:flex;align-items:center;justify-content:center;font-size:18px;">⭐</div>
+          <div><div style="font-size:14px;font-weight:600;color:var(--ink);">Gold Plan — January 2026</div><div style="font-size:12px;color:var(--muted);">Jan 1, 2026 · Subscription</div></div>
+        </div>
+        <div style="text-align:right;"><div style="font-weight:800;font-size:15px;color:var(--ink);">₹499</div><span class="badge badge-green" style="font-size:10px;">Paid</span></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ══ MODALS ══ -->
+<!-- SOS -->
+<div class="modal-overlay" id="sos-modal">
+  <div class="modal">
+    <div id="sos-state-1">
+      <div style="font-size:70px;margin-bottom:14px;">🆘</div>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:30px;color:var(--red);margin-bottom:7px;">Emergency SOS</h2>
+      <p style="color:var(--muted);margin-bottom:10px;font-size:14px;">This will immediately connect you to the</p>
+      <div style="background:#fef2f2;border:2px solid #fca5a5;border-radius:16px;padding:18px;margin-bottom:22px;">
+        <div style="font-size:12px;color:var(--red);font-weight:700;margin-bottom:4px;">National Highway Helpline</div>
+        <div style="font-size:50px;font-weight:900;color:var(--red);letter-spacing:6px;font-family:'Cormorant Garamond',serif;">1033</div>
+      </div>
+      <p style="color:#9ca3af;font-size:11px;margin-bottom:26px;line-height:1.6;">Your current location will be automatically shared with emergency services upon connection.</p>
+      <div style="display:flex;gap:12px;">
+        <button class="btn btn-ghost" style="flex:1;" onclick="closeSOS()">Cancel</button>
+        <button class="btn btn-red" style="flex:2;font-size:15px;" onclick="callSOS()">📞 Call 1033 Now</button>
+      </div>
+    </div>
+    <div id="sos-state-2" class="hidden">
+      <div style="font-size:70px;animation:pulse 1s infinite;display:inline-block;">📞</div>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--red);">Connecting...</h2>
+      <p style="color:var(--muted);margin:11px 0 7px;">Calling National Highway Helpline</p>
+      <div style="font-size:58px;font-weight:900;color:var(--red);font-family:'Cormorant Garamond',serif;" id="sos-countdown">3</div>
+      <p id="sos-connected" class="hidden" style="color:#16a34a;font-weight:700;font-size:15px;margin-top:7px;">✓ Connected! Help is on the way.</p>
+      <button class="btn btn-ghost mt24" onclick="closeSOS()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Booking Modal -->
+<div class="modal-overlay" id="booking-modal">
+  <div class="modal-sheet" id="booking-sheet">
+    <div id="booking-step-0">
+      <div style="text-align:center;margin-bottom:26px;"><div style="font-size:62px;" id="bm-icon">🚗</div><h3 style="font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--ink);margin:9px 0 4px;" id="bm-title">Confirm Booking</h3><p style="color:var(--muted);font-size:13px;" id="bm-sub">Vehicle · City</p></div>
+      <div style="background:var(--cream);border-radius:15px;padding:20px;margin-bottom:18px;" id="bm-summary"></div>
+      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:13px 17px;margin-bottom:22px;font-size:13px;color:#92400e;">💡 <strong>Price includes:</strong> Waiting time at all stops, driver charges, and tolls. No hidden fees.</div>
+      <div style="display:flex;gap:12px;">
+        <button class="btn btn-ghost" style="flex:1;padding:15px;" onclick="closeBookingModal()">Cancel</button>
+        <button class="btn btn-teal" style="flex:2;padding:15px;font-size:15px;" onclick="bookingStep(1)">✅ Confirm & Book</button>
+      </div>
+    </div>
+    <div id="booking-step-1" class="hidden" style="text-align:center;padding:38px 0;">
+      <div style="font-size:62px;animation:spin 1s linear infinite;display:inline-block;">🔍</div>
+      <h3 style="font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--ink);margin-top:14px;">Finding your driver...</h3>
+      <p style="color:var(--muted);font-size:13px;margin-top:5px;">Matching you with the best nearby driver</p>
+      <div style="margin-top:18px;display:flex;justify-content:center;gap:7px;">
+        <div style="width:9px;height:9px;border-radius:50%;background:var(--teal);animation:bounce .8s ease 0s infinite;"></div>
+        <div style="width:9px;height:9px;border-radius:50%;background:var(--teal);animation:bounce .8s ease .2s infinite;"></div>
+        <div style="width:9px;height:9px;border-radius:50%;background:var(--teal);animation:bounce .8s ease .4s infinite;"></div>
+      </div>
+    </div>
+    <div id="booking-step-2" class="hidden">
+      <div style="text-align:center;margin-bottom:22px;">
+        <div style="width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:0 12px 32px rgba(42,127,111,.35);">✓</div>
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--ink);margin-bottom:4px;">Booking Confirmed!</h3>
+        <p style="color:var(--muted);font-size:13px;">Your driver is on the way</p>
+      </div>
+      <div style="background:linear-gradient(135deg,#f0f9ff,#ecfdf5);border:2px solid #a7f3d0;border-radius:17px;padding:20px;margin-bottom:18px;">
+        <div style="display:flex;gap:14px;align-items:center;">
+          <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">👨</div>
+          <div style="flex:1;"><div style="font-weight:700;font-size:17px;color:var(--ink);" id="driver-name"></div><div style="font-size:12px;color:var(--muted);" id="driver-vehicle"></div><div style="font-size:11px;color:var(--muted);font-family:monospace;letter-spacing:2px;margin-top:2px;" id="driver-plate"></div></div>
+          <div style="text-align:right;"><div style="font-size:10px;color:var(--muted);">ETA</div><div style="font-size:30px;font-weight:900;color:var(--teal);font-family:'Cormorant Garamond',serif;" id="driver-eta"></div><div style="font-size:10px;color:var(--muted);">min</div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:12px;">
+        <button class="btn btn-ghost" style="flex:1;">📞 Call Driver</button>
+        <button class="btn btn-ghost" style="flex:1;">💬 Message</button>
+      </div>
+      <button class="btn btn-teal" style="width:100%;padding:15px;font-size:15px;" onclick="confirmAndTrack()">🗺️ Go to Live Tracking</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" style="position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink2);color:#fff;padding:13px 24px;border-radius:12px;font-size:14px;font-weight:600;z-index:9999;transition:transform .3s ease;pointer-events:none;white-space:nowrap;border:1px solid rgba(201,151,58,.3);">Toast message</div>
+
+<!-- ══ LOGOUT MODAL ══ -->
+<div class="modal-overlay" id="logout-modal">
+  <div class="modal" style="max-width:400px;">
+    <div id="logout-step-0">
+      <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#fef2f2,#fee2e2);margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:32px;">🚪</div>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--ink);margin-bottom:8px;">Sign Out?</h2>
+      <p style="color:var(--muted);font-size:14px;margin-bottom:8px;line-height:1.6;">You'll need to sign back in to access your trips, bookings, and preferences.</p>
+      <div style="background:var(--cream2);border-radius:12px;padding:14px 18px;margin-bottom:24px;display:flex;align-items:center;gap:12px;">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--teal));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">👤</div>
+        <div style="text-align:left;">
+          <div style="font-weight:700;font-size:14px;color:var(--ink);">Arjun Sharma</div>
+          <div style="font-size:12px;color:var(--muted);">arjun.sharma@gmail.com</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;">
+        <button class="btn btn-ghost" style="flex:1;padding:14px;" onclick="closeLogout()">Cancel</button>
+        <button class="btn btn-red" style="flex:1;padding:14px;font-size:15px;" onclick="logoutStep(1)">Sign Out</button>
+      </div>
+    </div>
+    <div id="logout-step-1" class="hidden" style="text-align:center;padding:20px 0;">
+      <div style="font-size:56px;margin-bottom:16px;animation:spin 1s linear infinite;display:inline-block;">⏳</div>
+      <p style="color:var(--muted);font-size:14px;">Signing you out securely...</p>
+    </div>
+    <div id="logout-step-2" class="hidden" style="text-align:center;padding:10px 0;">
+      <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#d1fae5,#ecfdf5);margin:0 auto 18px;display:flex;align-items:center;justify-content:center;font-size:32px;">✓</div>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--ink);margin-bottom:8px;">Signed Out</h2>
+      <p style="color:var(--muted);font-size:14px;margin-bottom:24px;">You've been safely signed out. Safe travels! 🇮🇳</p>
+      <button class="btn btn-gold" style="width:100%;padding:14px;font-size:15px;" onclick="finishLogout()">🪔 Back to Vizztapp</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PROFILE QUICK MODAL ══ -->
+<div class="modal-overlay" id="profile-quick-modal">
+  <div class="modal" style="max-width:480px;padding:0;overflow:hidden;text-align:left;">
+    <!-- Banner -->
+    <div style="background:linear-gradient(135deg,var(--ink),var(--ink2));padding:32px 36px;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:-30px;right:-30px;width:150px;height:150px;border-radius:50%;background:rgba(201,151,58,.08);"></div>
+      <div style="display:flex;align-items:center;gap:18px;position:relative;">
+        <div style="width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--teal));display:flex;align-items:center;justify-content:center;font-size:28px;border:3px solid rgba(255,255,255,.2);flex-shrink:0;">👤</div>
+        <div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:#fff;">Arjun Sharma</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;">arjun.sharma@gmail.com</div>
+          <div style="display:inline-flex;align-items:center;gap:5px;margin-top:7px;padding:4px 12px;border-radius:20px;background:rgba(201,151,58,.15);border:1px solid rgba(201,151,58,.3);font-size:11px;font-weight:700;color:var(--gold2);">🥇 Gold Explorer</div>
+        </div>
+        <button onclick="closeProfileQuick()" style="position:absolute;top:0;right:0;background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.6);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">×</button>
+      </div>
+      <!-- Mini stats -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px;">
+        <div style="background:rgba(255,255,255,.06);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--gold2);">12</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.5px;">Trips</div>
+        </div>
+        <div style="background:rgba(255,255,255,.06);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--gold2);">5</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.5px;">Cities</div>
+        </div>
+        <div style="background:rgba(255,255,255,.06);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--gold2);">247</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.5px;">km</div>
+        </div>
+      </div>
+    </div>
+    <!-- Menu items -->
+    <div style="padding:12px 0;">
+      <div onclick="openFromQuick('profile')" style="display:flex;align-items:center;gap:14px;padding:14px 28px;cursor:pointer;transition:background .15s;border-bottom:1px solid var(--cream2);" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:10px;background:#ede9fe;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">👤</div>
+        <div style="flex:1;"><div style="font-weight:600;font-size:14px;color:var(--ink);">My Profile</div><div style="font-size:12px;color:var(--muted);">View stats, edit info & achievements</div></div>
+        <div style="color:var(--muted);font-size:18px;">›</div>
+      </div>
+      <div onclick="openFromQuick('accounts')" style="display:flex;align-items:center;gap:14px;padding:14px 28px;cursor:pointer;transition:background .15s;border-bottom:1px solid var(--cream2);" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:10px;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">💳</div>
+        <div style="flex:1;"><div style="font-weight:600;font-size:14px;color:var(--ink);">Account & Plans</div><div style="font-size:12px;color:var(--muted);">Subscription, billing & payments</div></div>
+        <div style="color:var(--muted);font-size:18px;">›</div>
+      </div>
+      <div onclick="openFromQuick('settings')" style="display:flex;align-items:center;gap:14px;padding:14px 28px;cursor:pointer;transition:background .15s;border-bottom:1px solid var(--cream2);" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:10px;background:#d1fae5;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">⚙️</div>
+        <div style="flex:1;"><div style="font-weight:600;font-size:14px;color:var(--ink);">Settings</div><div style="font-size:12px;color:var(--muted);">Notifications, privacy & display</div></div>
+        <div style="color:var(--muted);font-size:18px;">›</div>
+      </div>
+      <div onclick="openFromQuick('history')" style="display:flex;align-items:center;gap:14px;padding:14px 28px;cursor:pointer;transition:background .15s;border-bottom:1px solid var(--cream2);" onmouseover="this.style.background='var(--cream)'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:10px;background:#fef3c7;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🕓</div>
+        <div style="flex:1;"><div style="font-weight:600;font-size:14px;color:var(--ink);">Trip History</div><div style="font-size:12px;color:var(--muted);">All your past and upcoming trips</div></div>
+        <div style="color:var(--muted);font-size:18px;">›</div>
+      </div>
+      <!-- Logout row -->
+      <div onclick="openLogout()" style="display:flex;align-items:center;gap:14px;padding:14px 28px;cursor:pointer;transition:background .15s;margin-top:4px;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
+        <div style="width:38px;height:38px;border-radius:10px;background:#fee2e2;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🚪</div>
+        <div style="flex:1;"><div style="font-weight:600;font-size:14px;color:var(--red);">Sign Out</div><div style="font-size:12px;color:#f87171;">Log out of your account</div></div>
+        <div style="color:#fca5a5;font-size:18px;">›</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const CITY_PLACES={Delhi:["India Gate","Qutub Minar","Red Fort","Lotus Temple","Humayun's Tomb","Akshardham","Chandni Chowk","Lodi Garden"],Mumbai:["Gateway of India","Marine Drive","Elephanta Caves","Juhu Beach","Siddhivinayak Temple","Chhatrapati Shivaji Terminus","Bandra Fort","Haji Ali Dargah"],Jaipur:["Amber Fort","Hawa Mahal","City Palace","Jantar Mantar","Nahargarh Fort","Albert Hall Museum","Jal Mahal","Birla Temple"],Goa:["Calangute Beach","Baga Beach","Basilica of Bom Jesus","Fort Aguada","Dudhsagar Falls","Anjuna Flea Market","Chapora Fort","Palolem Beach"],Agra:["Taj Mahal","Agra Fort","Fatehpur Sikri","Mehtab Bagh","Itmad-ud-Daulah","Akbar's Tomb","Kinari Bazaar","Dayal Bagh"]};
+const CROWD_LEVELS=["Low","Moderate","High","Very High"];
+const WEATHER_OPTIONS=[{label:"Sunny ☀️",color:"#f59e0b",bg:"#fef3c7"},{label:"Partly Cloudy ⛅",color:"#6b7280",bg:"#f3f4f6"},{label:"Overcast 🌥️",color:"#9ca3af",bg:"#f9fafb"},{label:"Light Rain 🌦️",color:"#3b82f6",bg:"#eff6ff"}];
+const VEHICLES=[
+  {id:"bike",name:"Bike Taxi",emoji:"🏍️",desc:"Zip through traffic solo",seats:1,ac:false,baseFare:20,perKm:8,badge:"Fastest",badgeColor:"#ef4444",badgeBg:"#fee2e2",features:["Beat traffic","Solo rides","Helmet provided"],rating:4.3},
+  {id:"auto",name:"Auto Rickshaw",emoji:"🛺",desc:"Best for short hops & narrow lanes",seats:3,ac:false,baseFare:30,perKm:12,badge:"Eco",badgeColor:"#10b981",badgeBg:"#d1fae5",features:["Quick availability","Local expertise","No parking stress"],rating:4.4},
+  {id:"mini",name:"Mini Cab",emoji:"🚗",desc:"Comfortable hatchback for small groups",seats:4,ac:true,baseFare:50,perKm:14,badge:"Popular",badgeColor:"#3b82f6",badgeBg:"#dbeafe",features:["Air conditioned","GPS tracked","Luggage space"],rating:4.6},
+  {id:"sedan",name:"Sedan",emoji:"🚘",desc:"Premium comfort for full-day tours",seats:4,ac:true,baseFare:80,perKm:18,badge:"Best Value",badgeColor:"#8b5cf6",badgeBg:"#ede9fe",features:["Premium AC","Professional driver","Charging port"],rating:4.7},
+  {id:"suv",name:"SUV / Innova",emoji:"🚙",desc:"Spacious ride for families & groups",seats:7,ac:true,baseFare:120,perKm:22,badge:"Family",badgeColor:"#f59e0b",badgeBg:"#fef3c7",features:["7 seats","Large boot space","Full-day package"],rating:4.8},
+  {id:"tempo",name:"Tempo Traveller",emoji:"🚐",desc:"Group travel made easy & affordable",seats:12,ac:true,baseFare:200,perKm:28,badge:"Group Deal",badgeColor:"#ec4899",badgeBg:"#fce7f3",features:["12 seats","Tour guide ready","Best per-head rate"],rating:4.5}
+];
+const HOTELS=[{name:"The Grand Palace",rating:4.8,price:"₹4,500/night",type:"Luxury",emoji:"🏨",dist:"0.8 km",bg:"#fef3c7"},{name:"Comfort Stay Inn",rating:4.3,price:"₹1,800/night",type:"Mid-range",emoji:"🏩",dist:"1.2 km",bg:"#dbeafe"},{name:"Heritage Haveli",rating:4.6,price:"₹3,200/night",type:"Boutique",emoji:"🏛️",dist:"0.5 km",bg:"#d1fae5"},{name:"Budget Nest",rating:4.1,price:"₹850/night",type:"Budget",emoji:"🏠",dist:"2.1 km",bg:"#ede9fe"}];
+const RESTAURANTS=[{name:"Spice Route",rating:4.7,cuisine:"North Indian",price:"₹₹₹",emoji:"🍛",dist:"0.3 km",bg:"#fef3c7"},{name:"The Curry House",rating:4.5,cuisine:"Mughlai",price:"₹₹",emoji:"🫕",dist:"0.6 km",bg:"#fce7f3"},{name:"Café Monsoon",rating:4.4,cuisine:"Continental",price:"₹₹",emoji:"☕",dist:"0.9 km",bg:"#dbeafe"},{name:"Street Bites",rating:4.6,cuisine:"Street Food",price:"₹",emoji:"🌮",dist:"0.2 km",bg:"#d1fae5"}];
+
+const HISTORY_DATA=[
+  {id:1,city:"Jaipur",emoji:"🏰",banner:"#fef3c7",date:"Dec 28, 2024",stops:["Amber Fort","Hawa Mahal","City Palace","Jantar Mantar","Nahargarh Fort"],vehicle:"Sedan 🚘",amount:"₹1,440",distance:"21 km",duration:"7.5 hrs",status:"completed",rating:5},
+  {id:2,city:"Goa",emoji:"🏖️",banner:"#dbeafe",date:"Nov 15, 2024",stops:["Calangute Beach","Baga Beach","Fort Aguada","Basilica of Bom Jesus"],vehicle:"Mini Cab 🚗",amount:"₹905",distance:"16.8 km",duration:"6 hrs",status:"completed",rating:4},
+  {id:3,city:"Delhi",emoji:"🕌",banner:"#ede9fe",date:"Oct 3, 2024",stops:["India Gate","Red Fort","Chandni Chowk","Qutub Minar","Lotus Temple","Akshardham"],vehicle:"SUV 🚙",amount:"₹2,095",distance:"25.2 km",duration:"9 hrs",status:"completed",rating:5},
+  {id:4,city:"Mumbai",emoji:"🌊",banner:"#d1fae5",date:"Sep 10, 2024",stops:["Gateway of India","Marine Drive","Juhu Beach"],vehicle:"Auto 🛺",amount:"₹478",distance:"12.6 km",duration:"4.5 hrs",status:"completed",rating:4},
+  {id:5,city:"Agra",emoji:"🕍",banner:"#fce7f3",date:"Aug 20, 2024",stops:["Taj Mahal","Agra Fort","Mehtab Bagh","Fatehpur Sikri"],vehicle:"Sedan 🚘",amount:"₹1,192",distance:"16.8 km",duration:"6 hrs",status:"completed",rating:5},
+  {id:6,city:"Jaipur",emoji:"🏰",banner:"#fef3c7",date:"Apr 18, 2025",stops:["Amber Fort","Jal Mahal","Birla Temple"],vehicle:"Mini Cab 🚗",amount:"₹700",distance:"12.6 km",duration:"4.5 hrs",status:"upcoming",rating:0},
+];
+
+const rand=a=>a[Math.floor(Math.random()*a.length)];
+const calcFare=(v,s)=>Math.round(v.baseFare+s*4.2*v.perKm);
+
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let state={city:"",selectedPlaces:[],plan:[],weather:null,crowdLevels:[],bookedVehicle:null,selectedVehicle:null,filterSeat:0,trackingActive:false,trackIdx:0,trackProgress:0,trackTimer:null,currentNearby:'hotels',driverEta:5,historyFilter:'all'};
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.transform='translateX(-50%) translateY(0)';setTimeout(()=>t.style.transform='translateX(-50%) translateY(80px)',3000);}
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  const map={home:0,plan:1,vehicles:2,tracking:3,nearby:4,history:5};
+  const links=document.querySelectorAll('.nav-link');
+  if(map[id]!==undefined)links[map[id]].classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(id==='vehicles')renderVehicles();
+  if(id==='tracking')updateTrackingScreen();
+  if(id==='nearby')renderNearby(state.currentNearby);
+  if(id==='history')renderHistory('newest');
+}
+
+// profile dropdown legacy removed — using modal-based profile quick view
+
+// ── CITY & PLACES ─────────────────────────────────────────────────────────────
+function handleCityInput(v){const b=document.getElementById('suggestions-box');if(v.length<1){b.classList.remove('open');b.innerHTML='';return;}const m=Object.keys(CITY_PLACES).filter(c=>c.toLowerCase().startsWith(v.toLowerCase()));if(!m.length){b.classList.remove('open');return;}b.innerHTML=m.map(c=>`<div class="suggestion-item" onclick="selectCity('${c}')">📍 ${c}</div>`).join('');b.classList.add('open');}
+function selectCity(c){state.city=c;document.getElementById('city-input').value=c;document.getElementById('suggestions-box').classList.remove('open');state.selectedPlaces=[];renderPlaces();}
+function selectCityFromHome(c){showScreen('plan');setTimeout(()=>selectCity(c),100);}
+function renderPlaces(){const sec=document.getElementById('places-section');const grid=document.getElementById('places-grid');sec.classList.remove('hidden');document.getElementById('places-label').textContent=`Places in ${state.city}`;const p=CITY_PLACES[state.city]||[];grid.innerHTML=p.map(pl=>{const s=state.selectedPlaces.includes(pl);return`<div class="place-chip ${s?'selected':''}" onclick="togglePlace('${pl.replace(/'/g,"\\'")}')"><span class="check">${s?'✓':''}</span>${pl}</div>`;}).join('');updateCounts();}
+function togglePlace(p){state.selectedPlaces=state.selectedPlaces.includes(p)?state.selectedPlaces.filter(x=>x!==p):[...state.selectedPlaces,p];renderPlaces();}
+function updateCounts(){const n=state.selectedPlaces.length;document.getElementById('selected-count').textContent=n+' selected';const b=document.getElementById('generate-btn');if(n>=2){b.classList.remove('hidden');b.disabled=false;b.innerHTML=`✨ Generate Smart Plan for ${state.city}`;}else b.classList.add('hidden');}
+
+// ── PLAN ──────────────────────────────────────────────────────────────────────
+async function generatePlan(){
+  document.getElementById('plan-placeholder').classList.add('hidden');
+  document.getElementById('plan-loading').classList.remove('hidden');
+  document.getElementById('plan-output').classList.add('hidden');
+  document.getElementById('generate-btn').disabled=true;
+  await new Promise(r=>setTimeout(r,2000));
+  state.weather=rand(WEATHER_OPTIONS);
+  state.plan=[...state.selectedPlaces].sort(()=>Math.random()-.3);
+  state.crowdLevels=state.plan.map(()=>rand(CROWD_LEVELS));
+  document.getElementById('plan-loading').classList.add('hidden');
+  renderPlanOutput();
+  document.getElementById('generate-btn').disabled=false;
+}
+function renderPlanOutput(){
+  document.getElementById('plan-output').classList.remove('hidden');
+  const w=state.weather;
+  document.getElementById('plan-info-bar').innerHTML=`<span class="info-chip" style="background:${w.bg};color:${w.color};">${w.label}</span><span class="info-chip" style="background:var(--cream2);color:var(--ink2);">📍 ${state.city}</span><span class="info-chip" style="background:#d1fae5;color:#065f46;">✅ ${state.plan.length} stops</span><span class="info-chip" style="background:#e0f2fe;color:#0369a1;">⏱ ~${(state.plan.length*1.5).toFixed(0)} hrs</span>`;
+  document.getElementById('plan-title').textContent=`${state.city} Itinerary`;
+  document.getElementById('plan-subtitle').textContent=`Optimized · ${(state.plan.length*4.2).toFixed(1)} km route`;
+  const times=["9:00 AM","10:30 AM","12:00 PM","1:30 PM","3:00 PM","4:30 PM","6:00 PM","7:30 PM"];
+  const durs=["1.5 hrs","1 hr","2 hrs","1.5 hrs","1 hr","2 hrs","1 hr","1.5 hrs"];
+  const grads=["#3aab97,#2a7f6f","#c9973a,#e8b84b","#8b5cf6,#7c3aed","#ec4899,#be185d","#ef4444,#dc2626","#3b82f6,#1d4ed8","#10b981,#059669","#f97316,#ea580c"];
+  const ccMap={Low:"tag-crowd-low",Moderate:"tag-crowd-mod",High:"tag-crowd-high","Very High":"tag-crowd-vhigh"};
+  document.getElementById('itinerary-list').innerHTML=state.plan.map((p,i)=>`<div class="stop-item" style="animation-delay:${i*.1}s;"><div class="stop-num" style="background:linear-gradient(135deg,${grads[i%grads.length]});">${i+1}</div><div class="stop-body"><div class="flex-between"><div class="stop-name">${p}</div><div style="font-size:11px;color:var(--muted);background:var(--cream2);padding:3px 9px;border-radius:8px;">${times[i%times.length]}</div></div><div class="stop-tags mt8"><span class="tag ${ccMap[state.crowdLevels[i]]}">👥 ${state.crowdLevels[i]}</span><span class="tag tag-dur">⏱ ${durs[i%durs.length]}</span><span class="tag tag-time">📍 ${(0.8+i*2.3).toFixed(1)} km</span><span class="tag tag-weather">${state.weather.label.split(' ').pop()}</span></div></div></div>`).join('');
+}
+
+// ── VEHICLES ──────────────────────────────────────────────────────────────────
+function filterVehicles(s){state.filterSeat=s;['0','1','4','7'].forEach(n=>{const el=document.getElementById('filter-'+n);el.style.background='';el.style.color='';el.style.borderColor='';});const a=document.getElementById('filter-'+s);a.style.background='var(--teal)';a.style.color='#fff';a.style.borderColor='var(--teal)';renderVehicles();}
+function renderVehicles(){
+  const stops=state.plan.length||3;
+  const sort=document.getElementById('vehicle-sort').value;
+  document.getElementById('vehicle-trip-info').textContent=state.plan.length>0?`${stops} stops · ${(stops*4.2).toFixed(1)} km · ${state.city} · Transparent all-inclusive pricing`:'Transparent pricing — all-inclusive fares with no surge pricing.';
+  let veh=VEHICLES.filter(v=>state.filterSeat===0||v.seats>=state.filterSeat);
+  if(sort==='price')veh=veh.sort((a,b)=>calcFare(a,stops)-calcFare(b,stops));
+  else if(sort==='rating')veh=veh.sort((a,b)=>b.rating-a.rating);
+  document.getElementById('vehicles-grid').innerHTML=veh.map(v=>{
+    const fare=calcFare(v,stops);const ph=Math.round(fare/v.seats);const sel=state.selectedVehicle?.id===v.id;
+    return`<div class="vehicle-card ${sel?'selected':''}" onclick="selectVehicle('${v.id}')"><div class="vehicle-badge" style="background:${v.badgeBg};color:${v.badgeColor};">${v.badge}</div><span class="vehicle-icon">${v.emoji}</span><div class="vehicle-name">${v.name}</div><div class="vehicle-desc">${v.desc}</div><div class="vehicle-chips"><span class="vehicle-chip">👥 ${v.seats} ${v.seats===1?'seat':'seats'}</span>${v.ac?'<span class="vehicle-chip ac">❄️ AC</span>':''}<span class="vehicle-chip">⭐ ${v.rating}</span></div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:13px;">${v.features.map(f=>`<span style="font-size:11px;padding:3px 8px;border-radius:8px;background:var(--cream2);color:var(--ink2);">✓ ${f}</span>`).join('')}</div><div class="vehicle-price"><div><div class="vehicle-total">₹${fare}</div><div class="vehicle-per">full tour · ₹${v.perKm}/km</div>${v.seats>1?`<div style="font-size:11px;color:var(--teal);font-weight:700;margin-top:2px;">₹${ph}/person</div>`:''}</div><div style="font-size:13px;font-weight:600;color:var(--gold);">⭐ ${v.rating}</div></div>${sel?`<div style="margin-top:12px;padding:10px 13px;background:linear-gradient(135deg,#f0fdf9,#f0f9ff);border-radius:10px;font-size:12px;color:#065f46;font-weight:600;">✓ Selected — tap Book Now below</div>`:''}</div>`;
+  }).join('');
+  if(state.bookedVehicle){document.getElementById('vehicle-active-banner').classList.remove('hidden');document.getElementById('vab-icon').textContent=state.bookedVehicle.emoji;document.getElementById('vab-name').textContent='Active: '+state.bookedVehicle.name;document.getElementById('vab-eta').textContent=state.driverEta;}
+}
+function selectVehicle(id){
+  state.selectedVehicle=VEHICLES.find(v=>v.id===id);renderVehicles();
+  const stops=state.plan.length||3;const fare=calcFare(state.selectedVehicle,stops);
+  document.getElementById('booking-bar').classList.add('visible');
+  document.getElementById('bvb-vehicle-name').textContent=state.selectedVehicle.emoji+' '+state.selectedVehicle.name;
+  document.getElementById('bvb-trip-detail').textContent=`${stops} stops · ${(stops*4.2).toFixed(1)} km · ${state.selectedVehicle.seats} seats`;
+  document.getElementById('bvb-fare').textContent='₹'+fare;
+  document.getElementById('bvb-per-person').textContent=state.selectedVehicle.seats>1?'₹'+Math.round(fare/state.selectedVehicle.seats)+'/person':'';
+}
+
+// ── BOOKING ───────────────────────────────────────────────────────────────────
+function openBookingModal(){
+  if(!state.selectedVehicle)return;
+  const v=state.selectedVehicle;const stops=state.plan.length||3;const fare=calcFare(v,stops);
+  document.getElementById('bm-icon').textContent=v.emoji;
+  document.getElementById('bm-title').textContent='Confirm '+v.name;
+  document.getElementById('bm-sub').textContent=`${v.name} · ${stops} stops in ${state.city||'your city'}`;
+  document.getElementById('bm-summary').innerHTML=`<div style="display:flex;flex-direction:column;">${[['Vehicle',v.name],['Stops',stops+' places'],['Distance',(stops*4.2).toFixed(1)+' km'],['Duration','~'+(stops*1.5).toFixed(0)+' hrs'],['Seats',v.seats+(v.ac?' · AC':'')],['Total Fare','₹'+fare]].map(([k,val],i)=>`<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:${i<5?'1px solid var(--border)':'none'};"><span style="color:var(--muted);font-size:13px;">${k}</span><span style="font-weight:${i===5?'900':'700'};color:${i===5?'var(--teal)':'var(--ink)'};font-size:${i===5?'19px':'13px'};">${val}</span></div>`).join('')}</div>`;
+  ['booking-step-0','booking-step-1','booking-step-2'].forEach((id,i)=>document.getElementById(id).classList.toggle('hidden',i!==0));
+  document.getElementById('booking-modal').classList.add('open');
+}
+function closeBookingModal(){document.getElementById('booking-modal').classList.remove('open');}
+function bookingStep(step){
+  ['booking-step-0','booking-step-1','booking-step-2'].forEach((id,i)=>document.getElementById(id).classList.toggle('hidden',i!==step));
+  if(step===1)setTimeout(()=>bookingStep(2),2400);
+  if(step===2){const names=["Rajan Kumar","Suresh Yadav","Pradeep Singh","Mohan Das","Vijay Nair"];const plates=["DL 3C AB 4521","MH 12 XY 8834","RJ 14 CD 2290","GJ 05 EF 9901","UP 32 GH 7723"];const eta=Math.floor(Math.random()*8)+3;state.driverEta=eta;document.getElementById('driver-name').textContent=rand(names);document.getElementById('driver-vehicle').textContent=state.selectedVehicle.name+' · ⭐ '+state.selectedVehicle.rating;document.getElementById('driver-plate').textContent=rand(plates);document.getElementById('driver-eta').textContent=eta;state.bookedVehicle=state.selectedVehicle;}
+}
+function confirmAndTrack(){closeBookingModal();document.getElementById('booking-bar').classList.remove('visible');showScreen('tracking');}
+
+// ── TRACKING ──────────────────────────────────────────────────────────────────
+function updateTrackingScreen(){
+  if(!state.plan.length){document.getElementById('no-plan-tracking').style.display='block';document.getElementById('tracking-content').classList.add('hidden');return;}
+  document.getElementById('no-plan-tracking').style.display='none';document.getElementById('tracking-content').classList.remove('hidden');
+  const tvc=document.getElementById('tracking-vehicle-card');
+  if(state.bookedVehicle){tvc.classList.remove('hidden');document.getElementById('tv-icon').textContent=state.bookedVehicle.emoji;document.getElementById('tv-name').textContent=state.bookedVehicle.name;document.getElementById('tv-driver').textContent='⭐ '+state.bookedVehicle.rating+' · Driver confirmed';}else tvc.classList.add('hidden');
+  const cols=["#3aab97","#8b5cf6","#ec4899","#f59e0b","#10b981","#ef4444","#06b6d4","#84cc16"];
+  document.getElementById('route-stop-list').innerHTML=state.plan.map((p,i)=>`<div class="route-stop"><div class="route-dot" style="background:${i<state.trackIdx?'#10b981':i===state.trackIdx?cols[i%cols.length]:'#e5e7eb'};color:#fff;font-size:${i<state.trackIdx?'13px':'11px'}">${i<state.trackIdx?'✓':i+1}</div><div style="flex:1;"><div style="font-size:13px;font-weight:${i===state.trackIdx?'700':'500'};color:${i===state.trackIdx?'var(--ink)':'var(--muted)'};">${p}</div><div style="font-size:11px;color:var(--muted);">${i<state.trackIdx?'Visited':i===state.trackIdx?'← Current':i*25+' min away'}</div></div></div>`).join('');
+  updateTrackStats();
+}
+function updateTrackStats(){if(!state.plan.length)return;document.getElementById('track-current').textContent=state.plan[state.trackIdx]||'—';document.getElementById('track-progress-pct').textContent=state.trackProgress+'%';document.getElementById('track-progress-bar').style.width=state.trackProgress+'%';document.getElementById('ts-visited').textContent=`${state.trackIdx}/${state.plan.length}`;document.getElementById('ts-distance').textContent=(state.trackIdx*4.2+state.trackProgress*.04).toFixed(1)+' km';document.getElementById('ts-eta').textContent=Math.max(0,state.plan.length-state.trackIdx-1)*25+' min';}
+function toggleTracking(){
+  state.trackingActive=!state.trackingActive;const btn=document.getElementById('track-btn');
+  if(state.trackingActive){btn.style.background='linear-gradient(135deg,#ef4444,#dc2626)';btn.style.boxShadow='0 8px 24px rgba(239,68,68,.3)';btn.textContent='⏹ Stop Tracking';state.trackTimer=setInterval(()=>{state.trackProgress+=2;if(state.trackProgress>=100){if(state.trackIdx<state.plan.length-1){state.trackIdx++;state.trackProgress=0;}else{state.trackingActive=false;clearInterval(state.trackTimer);btn.style.background='linear-gradient(135deg,var(--teal),var(--teal2))';btn.textContent='✓ Tour Complete!';}}updateTrackStats();updateTrackingScreen();},80);}
+  else{btn.style.background='linear-gradient(135deg,var(--teal),var(--teal2))';btn.style.boxShadow='0 8px 24px rgba(42,127,111,.3)';btn.textContent='▶ Resume Tracking';clearInterval(state.trackTimer);}
+}
+
+// ── NEARBY ────────────────────────────────────────────────────────────────────
+function switchNearby(type,el){state.currentNearby=type;document.querySelectorAll('.nearby-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderNearby(type);}
+function renderNearby(type){const items=type==='hotels'?HOTELS:RESTAURANTS;document.getElementById('nearby-grid').innerHTML=items.map((item,i)=>`<div class="nearby-card" style="animation:fadeUp .4s ease ${i*.1}s both;"><div class="nearby-card-head" style="background:${item.bg};">${item.emoji}</div><div class="nearby-card-body"><div class="nearby-name">${item.name}</div><div class="nearby-meta"><span class="nearby-rating">⭐ ${item.rating}</span><span>${type==='hotels'?item.type:item.cuisine}</span><span>📍 ${item.dist}</span></div><div class="nearby-price-row"><div><div class="nearby-price">${type==='hotels'?item.price:item.price}</div><div style="font-size:11px;color:var(--muted);">${type==='hotels'?'per night':'Open 11am–11pm'}</div></div><button class="btn" style="${type==='hotels'?'background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;':'background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--ink);'}padding:8px 16px;font-size:12px;">${type==='hotels'?'Book Now':'Directions'}</button></div></div></div>`).join('');}
+
+// ── HISTORY ───────────────────────────────────────────────────────────────────
+function filterHistory(f,el){state.historyFilter=f;document.querySelectorAll('.hfilter').forEach(b=>b.classList.remove('active'));if(el)el.classList.add('active');renderHistory('newest');}
+function renderHistory(sort){
+  // Summary
+  const completed=HISTORY_DATA.filter(h=>h.status==='completed').length;
+  const upcoming=HISTORY_DATA.filter(h=>h.status==='upcoming').length;
+  const totalKm=HISTORY_DATA.reduce((a,h)=>a+parseFloat(h.distance),0);
+  const totalSpend=HISTORY_DATA.filter(h=>h.status==='completed').reduce((a,h)=>a+parseInt(h.amount.replace('₹','')),0);
+  document.getElementById('history-summary').innerHTML=[
+    {icon:'✅',label:'Completed Trips',val:completed,bg:'#d1fae5',c:'#065f46'},
+    {icon:'🔮',label:'Upcoming Trips',val:upcoming,bg:'#dbeafe',c:'#1d4ed8'},
+    {icon:'🛣️',label:'Total Distance',val:totalKm.toFixed(0)+' km',bg:'#fef3c7',c:'#92400e'},
+    {icon:'💰',label:'Total Spent',val:'₹'+totalSpend.toLocaleString('en-IN'),bg:'#ede9fe',c:'#5b21b6'},
+  ].map(s=>`<div style="background:${s.bg};border-radius:16px;padding:20px;"><div style="font-size:26px;margin-bottom:8px;">${s.icon}</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:${s.c};">${s.val}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">${s.label}</div></div>`).join('');
+  let data=state.historyFilter==='all'?HISTORY_DATA:HISTORY_DATA.filter(h=>h.status===state.historyFilter);
+  if(sort==='oldest')data=[...data].reverse();
+  else if(sort==='distance')data=[...data].sort((a,b)=>parseFloat(b.distance)-parseFloat(a.distance));
+  document.getElementById('history-grid').innerHTML=data.map(h=>{
+    const statusColor=h.status==='completed'?'badge-green':h.status==='upcoming'?'badge-blue':'badge-purple';
+    const stars=h.rating>0?'⭐'.repeat(h.rating):'';
+    return`<div class="history-card"><div class="history-card-banner" style="background:${h.banner};">${h.emoji}</div><div class="history-card-body"><div class="flex-between mb8"><div class="history-city">${h.city}</div><span class="badge ${statusColor}">${h.status}</span></div><div class="history-date">📅 ${h.date}</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px;">🚗 ${h.vehicle} · ⏱ ${h.duration} · 🛣️ ${h.distance}</div><div class="history-tags">${h.stops.slice(0,3).map(s=>`<span class="history-tag" style="background:var(--cream2);color:var(--ink2);">📍 ${s}</span>`).join('')}${h.stops.length>3?`<span class="history-tag" style="background:var(--cream2);color:var(--muted);">+${h.stops.length-3} more</span>`:''}</div><div class="flex-between"><div style="font-weight:800;font-size:17px;color:var(--teal);">${h.amount}</div><div style="font-size:14px;">${stars}</div></div><div class="history-actions mt8"><button class="btn btn-ghost" style="flex:1;padding:8px 12px;font-size:12px;" onclick="rebook('${h.city}')">↩️ Rebook</button>${h.status==='completed'?`<button class="btn" style="flex:1;padding:8px 12px;font-size:12px;background:var(--cream2);color:var(--ink2);">📋 Details</button>`:''}</div></div></div>`;
+  }).join('');
+}
+function rebook(city){selectCityFromHome(city);showToast(`Loading ${city} trip planner...`);}
+
+// ── PROFILE PANELS ────────────────────────────────────────────────────────────
+function switchProfilePanel(id,el){document.querySelectorAll('.profile-panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.pnav-item').forEach(n=>n.classList.remove('active'));document.getElementById('panel-'+id).classList.add('active');if(el)el.classList.add('active');}
+
+// ── SETTINGS PANELS ───────────────────────────────────────────────────────────
+function switchSettingsPanel(id,el){document.querySelectorAll('.settings-panel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.snav-item').forEach(n=>n.classList.remove('active'));document.getElementById('spanel-'+id).classList.add('active');if(el)el.classList.add('active');}
+
+// ── PROFILE QUICK MODAL ───────────────────────────────────────────────────────
+function openProfileQuick(){document.getElementById('profile-quick-modal').classList.add('open');}
+function closeProfileQuick(){document.getElementById('profile-quick-modal').classList.remove('open');}
+function openFromQuick(screen){closeProfileQuick();showScreen(screen);}
+
+// ── LOGOUT ────────────────────────────────────────────────────────────────────
+function openLogout(){
+  closeProfileQuick();
+  ['logout-step-0','logout-step-1','logout-step-2'].forEach((id,i)=>document.getElementById(id).classList.toggle('hidden',i!==0));
+  document.getElementById('logout-modal').classList.add('open');
+}
+function closeLogout(){document.getElementById('logout-modal').classList.remove('open');}
+function logoutStep(step){
+  ['logout-step-0','logout-step-1','logout-step-2'].forEach((id,i)=>document.getElementById(id).classList.toggle('hidden',i!==step));
+  if(step===1){setTimeout(()=>logoutStep(2),1800);}
+  if(step===2){
+    // Remove online indicator
+    const dot=document.getElementById('online-dot');
+    if(dot){dot.style.background='#9ca3af';}
+    showToast('Signed out successfully');
+  }
+}
+function finishLogout(){
+  closeLogout();
+  // Reset online dot
+  const dot=document.getElementById('online-dot');
+  if(dot){dot.style.background='#10b981';}
+  showScreen('home');
+  showToast('Welcome back to Vizztapp! 🪔');
+}
+
+// ── SOS ───────────────────────────────────────────────────────────────────────
+function openSOS(){document.getElementById('sos-state-1').classList.remove('hidden');document.getElementById('sos-state-2').classList.add('hidden');document.getElementById('sos-countdown').textContent='3';document.getElementById('sos-connected').classList.add('hidden');document.getElementById('sos-modal').classList.add('open');}
+function closeSOS(){document.getElementById('sos-modal').classList.remove('open');}
+function callSOS(){document.getElementById('sos-state-1').classList.add('hidden');document.getElementById('sos-state-2').classList.remove('hidden');window.location.href='tel:1033';let n=3;const t=setInterval(()=>{n--;document.getElementById('sos-countdown').textContent=n>0?n:'✓';if(n<=0){clearInterval(t);document.getElementById('sos-connected').classList.remove('hidden');}},1000);}
+</script>
+</body>
+</html>
